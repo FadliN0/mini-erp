@@ -67,7 +67,6 @@ export default function QuotationDetailClient({
   const [isCreatingSO, setIsCreatingSO] = useState(false);
   const [isPOModalOpen, setIsPOModalOpen] = useState(false);
   const [poInput, setPoInput] = useState("");
-  const handlePrint = () => window.print();
   const handleUpdateStatus = async (newStatus: string) => {
     if (existingSO) {
       alert("Dokumen ini sudah terkunci karena Sales Order telah diterbitkan.");
@@ -75,6 +74,12 @@ export default function QuotationDetailClient({
     }
     const res = await updateQuotationStatusAction(id, newStatus);
     if (res.success) setQuotation({ ...quotation, status: newStatus });
+  };
+  const handlePrint = () => {
+    window.print();
+    if (quotation.status === "Draft") {
+      handleUpdateStatus("Sent");
+    }
   };
   const getValidityDays = () => {
     if (!quotation?.created_at || !quotation?.valid_until) return 0;
@@ -154,55 +159,65 @@ export default function QuotationDetailClient({
                 />
               </svg>
             </Link>
-            <div className="min-w-0">
+            <div className="flex flex-col gap-1 min-w-0">
               <span className="hidden sm:block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
-                Status Dokumen
+                  Status Dokumen
               </span>
-              {isLocked ? (
-                // TAMPILAN JIKA TERKUNCI (SO SUDAH TERBIT)
-                <div
-                  title="Terkunci karena Sales Order sudah terbit"
-                  className="bg-slate-100 text-slate-500 border border-slate-200 rounded-lg h-10 sm:h-auto px-2.5 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-not-allowed shrink-0"
-                >
-                  <svg
-                    className="w-3.5 h-3.5 shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+              <div className="flex items-center gap-2">             
+                {isLocked ? (
+                  // TAMPILAN JIKA TERKUNCI (SO SUDAH TERBIT)
+                  <div
+                    title="Terkunci karena Sales Order sudah terbit"
+                    className="bg-slate-100 text-slate-500 border border-slate-200 rounded-lg h-10 sm:h-auto px-2.5 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-not-allowed shrink-0"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                    />
-                  </svg>
-                  <span className="truncate">Terkunci</span>
-                  <span className="hidden sm:inline">(SO Terbit)</span>
-                </div>
-              ) : (
-                // TAMPILAN DROPDOWN JIKA BELUM TERKUNCI
-                <select
-                  value={quotation.status}
-                  onChange={(e) => handleUpdateStatus(e.target.value)}
-                  title="Ubah status dokumen"
-                  className={`status-select-compact h-10 sm:h-auto font-black uppercase tracking-wider border-2 rounded-lg sm:py-1.5 outline-none transition-colors cursor-pointer appearance-none text-center sm:text-left
-                    ${
-                      quotation.status === "Draft"
-                        ? "bg-slate-100 text-slate-700 border-slate-200"
-                        : quotation.status === "Sent"
-                          ? "bg-blue-100 text-blue-700 border-blue-200"
-                          : quotation.status === "Approved"
-                            ? "bg-emerald-100 text-emerald-700 border-emerald-200"
-                            : "bg-rose-100 text-rose-700 border-rose-200"
-                    }`}
-                >
-                  <option value="Draft">Draft (Belum Fix)</option>
-                  <option value="Sent">Dikirim (Sent)</option>
-                  <option value="Approved">Disetujui (Approved)</option>
-                  <option value="Rejected">Ditolak (Rejected)</option>
-                </select>
-              )}
+                    <svg
+                      className="w-3.5 h-3.5 shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
+                    </svg>
+                    <span className="truncate">Terkunci</span>
+                    <span className="hidden sm:inline">(SO Terbit)</span>
+                  </div>
+                ) : (
+                  // TAMPILAN DROPDOWN JIKA BELUM TERKUNCI
+                  <div
+                    title="Status dokumen"
+                    className={`h-10 sm:h-auto px-2.5 sm:px-3 sm:py-1.5 border-2 rounded-lg font-black uppercase tracking-wider text-[10px] sm:text-xs flex items-center justify-center text-center sm:text-left
+                      ${
+                        quotation.status === "Draft"
+                          ? "bg-slate-100 text-slate-700 border-slate-200"
+                          : quotation.status === "Sent"
+                            ? "bg-blue-100 text-blue-700 border-blue-200"
+                            : quotation.status === "Approved"
+                              ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                              : "bg-rose-100 text-rose-700 border-rose-200"
+                      }`}
+                  >
+                    {quotation.status === "Draft" && "Draft (Belum Fix)"}
+                    {quotation.status === "Sent" && "Dikirim (Sent)"}
+                    {quotation.status === "Approved" && "Disetujui (Approved)"}
+                    {quotation.status === "Rejected" && "Ditolak (Rejected)"}
+                  </div>
+                )}  
+                {!isLocked && quotation.status === "Sent" && (
+                  <button
+                    onClick={() => handleUpdateStatus("Approved")}
+                    title="Tandai Disetujui"
+                    aria-label="Tandai Disetujui"
+                    className="h-10 sm:h-auto px-2.5 sm:px-3 sm:py-1.5 rounded-lg font-black uppercase tracking-wider text-[10px] sm:text-xs bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-sm"
+                  >
+                    Disetujui
+                  </button>
+                )}
+              </div>
             </div>
           </div>
           {/* --- KANAN: TOMBOL AKSI (REVISI / BUAT SO / PRINT) --- */}
@@ -337,16 +352,13 @@ export default function QuotationDetailClient({
               marginBottom: 2,
             }}
           >
-            <div style={{ width: 100, height: 65, flexShrink: 0 }}>
+            <div style={{ flexShrink: 0 }}>
               <Image
                 src="/logo1.png"
                 alt="CV. HJP Logo"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "contain",
-                  objectPosition: "left",
-                }}
+                width={110}
+                height={60}
+                style={{ height: "auto", objectFit: "contain" }}
               />
             </div>
             <div>

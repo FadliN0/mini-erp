@@ -252,13 +252,14 @@ export default function SalesOrderDetailClient({
             }}
           >
             <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-              <div style={{ width: 80, height: 80, flexShrink: 0 }}>
+              <div style={{ flexShrink: 0 }}>
                 <Image
                   src="/logo1.png"
                   alt="CV. HJP Logo"
+                  width={120}
+                  height={10}
                   style={{
-                    width: "100%",
-                    height: "100%",
+      
                     objectFit: "contain",
                   }}
                 />

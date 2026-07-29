@@ -86,7 +86,9 @@ export default function DeliveryOrderDetailClient({
               <Image
                 src="/logo1.png" 
                 alt="Logo" 
-                style={{ width: '100%', height: '120%', objectFit: 'contain' }} />
+                width={100} 
+                height={65} 
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
 
             {/* 2. Kontainer Flex baru khusus untuk menyejajarkan Teks Kiri dan Teks Kanan */}
