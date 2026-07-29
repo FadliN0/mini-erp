@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-
+import Image from 'next/image';
 export default function DeliveryOrderDetailClient({
   deliveryOrder,
   salesOrder,
@@ -83,7 +83,10 @@ export default function DeliveryOrderDetailClient({
             
             {/* 1. Logo dipisah dan diletakkan di atas */}
             <div style={{ width: 120, height: 100, flexShrink: 0 }}>
-              <img src="/logo1.png" alt="Logo" style={{ width: '100%', height: '120%', objectFit: 'contain' }} />
+              <Image
+                src="/logo1.png" 
+                alt="Logo" 
+                style={{ width: '100%', height: '120%', objectFit: 'contain' }} />
             </div>
 
             {/* 2. Kontainer Flex baru khusus untuk menyejajarkan Teks Kiri dan Teks Kanan */}

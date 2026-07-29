@@ -2,6 +2,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useToast } from "@/components/ui/Alert";
 import {
   updateSalesOrderStatusAction,
@@ -252,7 +253,7 @@ export default function SalesOrderDetailClient({
           >
             <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
               <div style={{ width: 80, height: 80, flexShrink: 0 }}>
-                <img
+                <Image
                   src="/logo1.png"
                   alt="CV. HJP Logo"
                   style={{

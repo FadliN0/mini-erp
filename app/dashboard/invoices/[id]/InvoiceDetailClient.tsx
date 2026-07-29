@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from '@/lib/supabase'; // Hanya dipertahankan untuk Kueri SELECT (Read-only) riwayat tren
+import { supabase } from '@/lib/supabase'; 
 import Link from "next/link";
 import { useToast } from "@/components/ui/Alert";
 import Modal from "@/components/ui/Modal";
+import Image from "next/image";
 import {
   saveInvoiceEditsAction,
   recordPaymentAction,
@@ -446,7 +447,11 @@ export default function InvoiceDetailClient({
                   </div>
                 </div>
                 <div style={ { width: 120, height: 90, flexShrink: 0 } }>
-                  <img src="/logo1.png" alt="Logo" style={ { width: "100%", height: "100%", objectFit: "contain" } } />
+                  <Image
+                    src="/logo1.png"
+                    alt="Logo"
+                    style={ { width: "100%", height: "100%", objectFit: "contain" } }
+                  />
                 </div>
               </div>
 

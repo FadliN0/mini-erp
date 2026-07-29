@@ -126,7 +126,7 @@ export default function CreateQuotationClient({
 
   // Diskon per item mendukung desimal dengan koma, misal "22,22" (maks 100%)
   const updateDiscount = (index: number, rawText: string) => {
-    let cleaned = rawText.replace(/[^\d.,]/g, "").replace(/\./g, ",");
+    const cleaned = rawText.replace(/[^\d.,]/g, "").replace(/\./g, ",");
     const parts = cleaned.split(",");
     let display = parts[0].slice(0, 3);
     if (parts.length > 1) {

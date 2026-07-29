@@ -1,6 +1,5 @@
 // app/dashboard/delivery-orders/page.tsx
 import { createClient } from '@/lib/supabaseServer';
-import { cookies } from 'next/headers';
 import DeliveryOrderListClient from './DeliveryOrderClient';
 
 export const dynamic = 'force-dynamic';

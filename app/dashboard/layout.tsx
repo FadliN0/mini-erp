@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import  { supabase } from '@/lib/supabase';
 import { ToastProvider } from '@/components/ui/Alert';
@@ -160,7 +161,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Area Logo & Brand */}
         <div className="flex items-center gap-3 px-6 py-6 bg-slate-950/50 border-b border-slate-800">
           <div className="w-10 h-10 bg-white rounded-lg p-1 shrink-0">
-            <img src="/logo1.png" alt="Logo" className="w-full h-full object-contain" />
+            <Image
+              src="/logo1.png"
+              alt="Logo"
+              className="w-full h-full object-contain"
+              width={40}
+              height={40}
+            />
           </div>
           <div>
             <h2 className="font-black text-lg tracking-wide text-amber-500 leading-tight">H!-Part</h2>
@@ -222,7 +229,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <header className="md:hidden flex items-center justify-between p-4 bg-slate-900 text-white print:hidden">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-white rounded p-0.5">
-              <img src="/logo1.png" alt="Logo CV Harmonisindo Jaya Part" className="w-full h-full object-contain" />
+              <Image
+                src="/logo1.png"
+                alt="Logo CV Harmonisindo Jaya Part"
+                className="w-full h-full object-contain"
+                width={40}
+                height={40}
+              />
             </div>
             <span className="font-black text-lg">H-Part</span>
           </div>

@@ -182,7 +182,7 @@ export default function CreateDOClient({
           </svg>
           <div className="text-sm">
             <p className="font-black uppercase tracking-wider mb-1">2. Mode Pengiriman Parsial</p>
-            <p>Masukkan jumlah barang yang akan dikirim hari ini pada kolom <b>"Kirim Sekarang"</b>. Sistem akan mencatat sisanya sebagai <i>backorder</i> jika tidak dikirim penuh.</p>
+            <p>{'Masukkan jumlah barang yang akan dikirim hari ini pada kolom <b>"Kirim Sekarang"</b>. Sistem akan mencatat sisanya sebagai <i>backorder</i> jika tidak dikirim penuh.'}</p>
           </div>
         </div>
 

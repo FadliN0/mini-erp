@@ -90,7 +90,7 @@ export default function SmartPasteProduct() {
         title="⚡ Smart Paste dari Excel"
         footer={
           <>
-            <button onClick={() => setIsOpen(false)} className="btn-secondary">
+            <button onClick={() => setIsOpen(false)} className='btn-secondary'>
               Batal
             </button>
             <button
@@ -117,7 +117,7 @@ export default function SmartPasteProduct() {
             .<br />
             Note:{' '}
             <span className="font-mono font-bold text-slate-900 bg-white px-1 py-0.5 rounded border">
-              Pisahkan Dengan Demiliter " , " " . " " / " " | " " ; "{' '}
+              Pisahkan Dengan Demiliter {' " , " " . " " / " " | " " ; " '}
             </span>
             .<br />
           </div>

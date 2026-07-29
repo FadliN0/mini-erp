@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabaseServer';
-import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import QuotationDetailClient from './QuotationDetailClient';
 

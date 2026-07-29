@@ -1,4 +1,3 @@
-import { cookies } from 'next/headers';
 import DashboardClient from './Dashboard';
 import { createClient } from '@/lib/supabaseServer';
 

@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   updateQuotationStatusAction,
   generateSalesOrderAction,
@@ -50,7 +50,7 @@ export default function QuotationDetailClient({
   items,
   initialExistingSO,
 }: QuotationDetailClientProps) {
-  const router = useRouter();
+
   const [quotation, setQuotation] = useState<any>(initialQuotation);
   const [existingSO, setExistingSO] = useState<any>(initialExistingSO);
   // Sub total = jumlah amount tiap item. Diskon nominal (tingkat dokumen) TIDAK
@@ -338,7 +338,7 @@ export default function QuotationDetailClient({
             }}
           >
             <div style={{ width: 100, height: 65, flexShrink: 0 }}>
-              <img
+              <Image
                 src="/logo1.png"
                 alt="CV. HJP Logo"
                 style={{

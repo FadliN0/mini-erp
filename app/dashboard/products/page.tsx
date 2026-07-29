@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabaseServer';
-import { cookies } from 'next/headers';
 import ProductClient from './ProductClient';
 
 export const dynamic = 'force-dynamic';
