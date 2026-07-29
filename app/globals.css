@@ -1,0 +1,170 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Kumpulan UI Standar "Corporate Trust" CV HJP */
+@layer components {
+  
+  /* =========================================
+     1. KARTU / WADAH UTAMA (CONTAINER)
+     ========================================= */
+  .card-modern {
+    @apply bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden;
+  }
+
+  /* =========================================
+     2. TOMBOL (BUTTONS)
+     ========================================= */
+  /* Tombol Utama (Aksi Penting: Simpan, Tambah, Buat) */
+  .btn-primary {
+    @apply flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-sm shadow-blue-200 transition-all focus:ring-4 focus:ring-blue-500/20 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none;
+  }
+  
+  /* Tombol Sekunder (Aksi Alternatif: Batal, Kembali, Tutup) */
+  .btn-secondary {
+    @apply flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold px-5 py-2.5 rounded-xl transition-all focus:ring-4 focus:ring-slate-100 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed;
+  }
+
+  /* Tombol Bahaya (Aksi Destruktif: Hapus, Tolak) */
+  .btn-danger {
+    @apply flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white font-bold px-5 py-2.5 rounded-xl shadow-sm shadow-rose-200 transition-all focus:ring-4 focus:ring-rose-500/20 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none;
+  }
+
+  /* =========================================
+     3. INPUT FORM (TEXT, SELECT, NUMBER)
+     ========================================= */
+  .input-modern {
+    @apply w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3 transition-all outline-none disabled:bg-slate-100 disabled:text-slate-500;
+  }
+
+  /* =========================================
+     4. BADGE / LABEL STATUS
+     ========================================= */
+  /* Sukses (Selesai, Lunas, Terkirim) */
+  .badge-success {
+    @apply bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider inline-block;
+  }
+  
+  /* Peringatan (Proses, Sebagian, Menunggu) */
+  .badge-warning {
+    @apply bg-amber-100 text-amber-700 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider inline-block;
+  }
+
+  /* Bahaya (Gagal, Belum Bayar, Dibatalkan) */
+  .badge-danger {
+    @apply bg-rose-100 text-rose-700 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider inline-block;
+  }
+
+  /* Netral (Draft, Arsip, Info biasa) */
+  .badge-neutral {
+    @apply bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider inline-block border border-slate-200;
+  }
+
+  .label-modern {
+    @apply text-xs font-bold text-slate-500 uppercase;
+  }
+
+  /* =========================================
+     5. LABEL TOMBOL (ICON-ONLY DI MOBILE)
+     =========================================
+     Pakai <span className="btn-label">Cetak PDF</span> di dalam tombol.
+     Di HP teks disembunyikan (tinggal ikon), di >=sm teks muncul lagi. */
+  .btn-label {
+    @apply hidden sm:inline;
+  }
+
+  /* Tombol yang jadi kotak ikon di mobile lalu melebar di desktop */
+  .btn-icon-mobile {
+    @apply w-10 h-10 px-0 gap-0 shrink-0 sm:w-auto sm:h-[40px] sm:px-4 sm:gap-2;
+  }
+
+  /* Baris header aksi dokumen: selalu 1 baris rapi di HP */
+  .doc-header-row {
+    @apply flex flex-row items-center justify-between gap-2 sm:gap-4 md:gap-6;
+  }
+
+  /* Select status yang ringkas di HP (tidak melebar penuh) */
+  .status-select-compact {
+    @apply w-[112px] truncate text-[10px] px-2 sm:w-auto sm:text-xs sm:px-3;
+  }
+
+  @media print {
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      height: auto !important;
+      width: auto !important;
+      min-width: 0 !important;
+      /* Chrome Android: paksa cetak warna & background persis seperti di layar */
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    .invoice-sheet {
+      margin: 0 !important;
+      box-shadow: none !important;
+      min-height: 0 !important;
+    }
+
+    .invoice-sheet:last-child {
+      break-after: auto !important;
+      page-break-after: auto !important;
+    }
+  }
+}
+
+/* ========================================
+   PERBAIKAN CETAK DI CHROME MOBILE
+   Ditulis di luar @layer agar tidak ikut ter-optimasi/di-strip.
+   ========================================= */
+@media print {
+  /* 1) Semua elemen wajib mencetak background & warna aslinya.
+        Tanpa ini Chrome mobile membuang background biru "Sales Quotation". */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 2) Matikan scroll container & transform yang bikin kertas A4 terpotong di HP */
+  .custom-scrollbar,
+  .overflow-x-auto,
+  .overflow-y-auto,
+  .overflow-hidden {
+    overflow: visible !important;
+  }
+
+  /* 3) Kertas dokumen selalu selebar A4 walau layar HP sempit */
+  .print-sheet {
+    width: 210mm !important;
+    max-width: 210mm !important;
+    margin: 0 auto !important;
+    padding: 20mm !important;
+    box-shadow: none !important;
+    border: none !important;
+    transform: none !important;
+  }
+
+  /* 4) Blok berwarna pada surat (banner judul, header tabel, dsb) */
+  .print-keep-bg {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* Fallback tambahan: sebagian Chrome Android hanya menghormati background
+   yang digambar lewat box-shadow inset, bukan background-color. */
+@media print {
+  .print-banner-blue {
+    background-color: #487bc8 !important;
+    box-shadow: inset 0 0 0 1000px #487bc8 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
