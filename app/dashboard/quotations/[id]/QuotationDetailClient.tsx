@@ -554,7 +554,8 @@ export default function QuotationDetailClient({
                   <td style={{ ...tdItem, textAlign: "center" }}>
                     {index + 1}
                   </td>
-                  <td style={{ ...tdItem, fontWeight: 400 }}>
+                  <td style={{ ...tdItem, fontWeight: 400 }}
+                    className="whitespace-normal break-all">
                     {item.products?.part_code}
                   </td>
                   <td style={tdItem}>
