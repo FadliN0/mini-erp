@@ -367,9 +367,9 @@ export default function ProductClient({ initialProducts }: ProductClientProps) {
                 }
                 className="input-modern"
               >
-                <option value="PCS">PCS</option>
-                <option value="UNIT">UNIT</option>
-                <option value="SET">SET</option>
+                <option value="PCS">Pcs</option>
+                <option value="UNIT">Unit</option>
+                <option value="SET">Set</option>
                 <option value="Ltr">Ltr</option>
               </select>
             </div>

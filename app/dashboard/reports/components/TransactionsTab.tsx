@@ -50,6 +50,16 @@ export default function TransactionsTab({
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [reportData, setReportData] = useState<any[]>([]);
+ 
+  const fmtDate = (date: string | Date | null) => {
+    if (!date) return '-';
+    return new Date(date).toLocaleDateString('id-ID', {
+      timeZone: 'Asia/Jakarta',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  };
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -94,6 +104,7 @@ export default function TransactionsTab({
       'No. DO',
       'Status Kirim',
       'Invoice',
+      'Tgl Invoice',
       'Status Bayar',
       'Total',
       'Terbayar',
@@ -109,13 +120,15 @@ export default function TransactionsTab({
           : Math.max(0, item.total_order_value - (item.total_paid_amount || 0));
 
       return [
-        new Date(item.so_date).toLocaleDateString('id-ID'),
+        fmtDate(item.so_date),
         `"${item.company_name}"`,
         item.po_number || '-',
         item.so_number,
         `"${item.do_numbers}"`,
         item.delivery_status,
         item.invoice_number,
+        item.invoice_created_at
+          ? fmtDate(item.invoice_created_at) : '-',
         item.payment_status,
         item.total_order_value,
         item.total_paid_amount || 0,
@@ -235,7 +248,7 @@ export default function TransactionsTab({
                       className={`cursor-pointer transition-colors group ${isCancelled ? 'bg-slate-50 opacity-70' : 'hover:bg-blue-50/50'}`}
                     >
                       <td className="p-4 text-slate-600 font-medium">
-                        {new Date(item.so_date).toLocaleDateString('id-ID')}
+                        {fmtDate(item.so_date)}
                       </td>
                       <td
                         className={`p-4 font-black uppercase ${isCancelled ? 'text-slate-500' : 'text-slate-900'}`}
@@ -271,6 +284,11 @@ export default function TransactionsTab({
                         <div className="font-mono text-[10px] text-slate-600 font-bold">
                           {item.invoice_number || '-'}
                         </div>
+                        {item.invoice_number && (
+                          <div className="text-[10px] text-slate-400 font-medium mt-0.5">
+                            {fmtDate(item.invoice_created_at)}
+                          </div>
+                        )}
                       </td>
                       <td className="p-4 text-right">
                         {/* [TAMBAHAN CANCEL INVOICE] Nilai dicoret jika batal */}

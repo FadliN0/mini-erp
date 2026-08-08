@@ -34,7 +34,7 @@ export default function AddProductClient({
       tempId: Date.now(),
       part_code: "",
       part_name: "",
-      unit: "PCS",
+      unit: "Pcs",
       price: 0,
       remark: "",
     },
@@ -47,7 +47,7 @@ export default function AddProductClient({
         tempId: Date.now(),
         part_code: "",
         part_name: "",
-        unit: "PCS",
+        unit: "Pcs",
         price: 0,
         remark: "",
       },
@@ -264,9 +264,9 @@ export default function AddProductClient({
                           handleChange(form.tempId, "unit", e.target.value)
                         }
                       >
-                        <option value="PCS">PCS</option>
-                        <option value="SET">SET</option>
-                        <option value="ASSY">ASSY</option>
+                        <option value="PCS">Pcs</option>
+                        <option value="SET">Set</option>
+                        <option value="ASSY">Assy</option>
                         <option value="Ltr">Ltr</option>
                       </select>
                     </td>
