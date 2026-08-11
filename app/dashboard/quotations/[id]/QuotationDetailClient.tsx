@@ -555,7 +555,7 @@ export default function QuotationDetailClient({
                     {index + 1}
                   </td>
                   <td style={{ ...tdItem, fontWeight: 400 }}
-                      className="whitespace-normal break-all"
+                      className="whitespace-normal break-words"
                   >
                     {item.products?.part_code}
                   </td>
@@ -599,7 +599,7 @@ export default function QuotationDetailClient({
                   </td>
                   <td
                     style={{ ...tdItem, textAlign: "center" }}
-                    className="whitespace-normal break-all"
+                    className="whitespace-normal break-words"
                   >
                     {item.products?.remark || ""}
                   </td> 
