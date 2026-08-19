@@ -390,7 +390,7 @@ export default function ProductClient({ initialProducts }: ProductClientProps) {
           <div>
             <label className="label-modern">Default Remark / Keterangan</label>
             <input
-              type="text"
+              type="text"   
               value={formData.remark}
               onChange={(e) =>
                 setFormData({ ...formData, remark: e.target.value })

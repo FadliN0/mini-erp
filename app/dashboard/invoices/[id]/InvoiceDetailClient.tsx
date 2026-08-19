@@ -587,7 +587,7 @@ export default function InvoiceDetailClient({
                         <td style={ { ...tdItem, textAlign: "center" } }>
                           {startNo + index + 1}
                         </td>
-                        <td style={ { ...tdItem, verticalAlign: "center" } }>{product?.part_code || "-"}</td>
+                        <td style={ { ...tdItem, verticalAlign: "center"}}className="whitespace-normal break-words">{product?.part_code || "-"}</td>
                         <td style={ { ...tdItem, whiteSpace: "normal", wordBreak: "break-word",  } }>
                           {product?.part_name || "-"}
                         </td>

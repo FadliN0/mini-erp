@@ -29,9 +29,7 @@ export default function SalesOrderDetailClient({
   const toast = useToast();
   const [isCreatingInvoice, startInvoiceTransition] = useTransition();
   const [isUpdatingStatus, startStatusTransition] = useTransition();
-
   const handlePrint = () => window.print();
-
   const handleUpdateStatus = (newStatus: string) => {
     if (newStatus === "Completed") {
       toast.error(
@@ -57,11 +55,9 @@ export default function SalesOrderDetailClient({
       }
     });
   };
-
   const handleCreateDO = () => {
     router.push(`/dashboard/delivery-orders/create?so_id=${salesOrder.id}`);
   };
-
   const handleCreateInvoice = () => {
     const confirm = window.confirm(
       "Buat Invoice Penagihan resmi untuk pesanan ini?",
@@ -82,12 +78,10 @@ export default function SalesOrderDetailClient({
       }
     });
   };
-
   const isStatusLocked =
     salesOrder.status === "Completed" || hasDO || hasInvoice;
   const isActionable =
     salesOrder.status !== "Cancelled" && salesOrder.status !== "Completed";
-
   return (
     <div className="w-full max-w-[1200px] mx-auto space-y-6 pb-10 print:m-0 print:p-0 print:max-w-none text-black relative">
       {/* KONTROL UI (GAYA MODERN FIT TO A4) */}
@@ -137,7 +131,6 @@ export default function SalesOrderDetailClient({
               </select>
             </div>
           </div>
-
           {/* Kanan: Action Buttons */}
           <div className="flex flex-row items-center sm:flex-wrap md:justify-end gap-2 sm:gap-2.5 shrink-0">
             {(isActionable || hasDO || hasInvoice) && (
@@ -157,7 +150,6 @@ export default function SalesOrderDetailClient({
                     <span className="btn-label">Buat DO</span>
                   </button>
                 )}
-
                 {/* Tombol Lihat DO: muncul kalau sudah ada minimal 1 DO */}
                 {hasDO && (
                   <Link
@@ -172,7 +164,6 @@ export default function SalesOrderDetailClient({
                     <span className="btn-label">Lihat DO</span>
                   </Link>
                 )}
-
                 {!hasInvoice && salesOrder.status !== "Cancelled" ? (
                   <button
                     onClick={handleCreateInvoice}
@@ -202,7 +193,6 @@ export default function SalesOrderDetailClient({
                 ) : null}
               </div>
             )}
-
             {/* Tombol Print */}
             <button
               onClick={handlePrint}
@@ -228,7 +218,6 @@ export default function SalesOrderDetailClient({
           </div>
         </div>
       </div>
-
       {/* WRAPPER PDF (KERTAS A4) */}
       <div className="w-full overflow-x-auto pb-8 custom-scrollbar print:overflow-visible print:pb-0">
         {/* KERTAS A4 */}
@@ -237,7 +226,7 @@ export default function SalesOrderDetailClient({
           style={{
             width: "210mm",
             minHeight: "297mm",
-            padding: "40px 48px",
+            padding: "44px 48px 72px",
             fontFamily: "'Noto Sans', Arial, sans-serif",
             fontSize: 11,
           }}
@@ -248,255 +237,263 @@ export default function SalesOrderDetailClient({
               display: "flex",
               justifyContent: "space-between",
               alignItems: "flex-start",
-              marginBottom: 12,
             }}
           >
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-              <div style={{ flexShrink: 0 }}>
-                <Image
-                  src="/logo1.png"
-                  alt="CV. HJP Logo"
-                  width={120}
-                  height={10}
-                  style={{
-      
-                    objectFit: "contain",
-                  }}
-                />
-              </div>
-              <div style={{ paddingTop: 4 }}>
+            <div
+              style={{ display: "flex", alignItems: "flex-start", gap: 14 }}
+            >
+              <Image
+                src="/logo1.png"
+                alt="CV. HJP Logo"
+                width={120}
+                height={40}
+                style={{
+                  width: 120,
+                  height: "auto",
+                  objectFit: "contain",
+                  display: "block",
+                  marginTop: 2,
+                }}
+              />
+              <div>
                 <div
                   style={{
                     fontSize: 13,
                     fontWeight: 800,
-                    color: "#2c3e50",
+                    letterSpacing: 0.4,
                     textTransform: "uppercase",
-                    marginBottom: 4,
                   }}
                 >
                   CV HARMONISINDO JAYA PART
                 </div>
-                <div style={{ fontSize: 10, color: "#444", lineHeight: 1.5 }}>
-                  SOHO CAPITAL lantai. 32 unit 7 Jl. Letjen S. Parman
+                <div
+                  style={{
+                    fontSize: 9.5,
+                    color: "#7D7A75",
+                    lineHeight: 1.55,
+                    marginTop: 4,
+                  }}
+                >
+                  SOHO Capital Lantai 32 Unit 7, Jl. Letjen S. Parman Kav. 28
                   <br />
-                  Kav. 28, Kelurahan Tanjung Duren Selatan
+                  Kel. Tanjung Duren Selatan, Kec. Grogol Petamburan
                   <br />
-                  Kec. Grogol Petamburan, Jakarta Barat
+                  Jakarta Barat, DKI Jakarta
                 </div>
               </div>
             </div>
-            <div style={{ textAlign: "right" }}>
+            <div style={{ textAlign: "right", flexShrink: 0 }}>
               <div
                 style={{
-                  background: "#2c3e50",
-                  color: "#fff",
-                  padding: "10px 28px",
-                  borderRadius: 4,
-                  display: "inline-block",
+                  fontSize: 26,
+                  fontWeight: 900,
+                  letterSpacing: 3,
+                  lineHeight: 1,
                 }}
               >
-                <span
-                  style={{ fontSize: 22, fontWeight: 900, letterSpacing: 2 }}
-                >
-                  SALES ORDER
-                </span>
+                SALES ORDER
               </div>
-              <p
+              <div
                 style={{
-                  fontSize: 10,
-                  color: "#555",
+                  fontSize: 9,
+                  fontWeight: 700,
+                  letterSpacing: 2.5,
+                  color: "#2783DE",
                   marginTop: 6,
-                  fontWeight: "bold",
                 }}
               >
-                ( ORDER CONFIRMATION )
-              </p>
+                ORDER CONFIRMATION
+              </div>
             </div>
           </div>
-
-          <hr
+          {/* ACCENT DIVIDER */}
+          <div
             style={{
-              border: "none",
-              borderTop: "2px solid #2c3e50",
-              margin: "20px 0 16px",
+              display: "flex",
+              alignItems: "center",
+              margin: "20px 0 18px",
             }}
-          />
-
-          {/* INFO */}
+          >
+            <div
+              style={{
+                width: "100%",
+                height: 4,
+                background: "#054b91",
+                borderRadius: 5,
+              }}
+            />
+            <div style={{ flex: 1, height: 1, background: "#E6E5E3" }} />
+          </div>
+          {/* INFO CARDS */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1.3fr 0.7fr",
-              gap: "0 24px",
-              marginBottom: 20,
+              gridTemplateColumns: "1.25fr 0.75fr",
+              gap: 14,
+              marginBottom: 22,
             }}
           >
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                tableLayout: "fixed",
-              }}
-            >
-              <colgroup>
-                <col style={{ width: 70 }} />
-                <col style={{ width: 15 }} />
-                <col />
-              </colgroup>
-              <tbody>
-                <tr>
-                  <td style={tdLabel}>ORDER BY</td>
-                  <td style={tdColon}>:</td>
-                  <td style={{ ...tdValue, fontWeight: 900, fontSize: 12 }}>
-                    {customer?.company_name}
-                  </td>
-                </tr>
-                <tr>
-                  <td
-                    style={{ ...tdLabel, verticalAlign: "top", paddingTop: 6 }}
-                  >
-                    SHIP TO
-                  </td>
-                  <td
-                    style={{ ...tdColon, verticalAlign: "top", paddingTop: 6 }}
-                  >
-                    :
-                  </td>
-                  <td
-                    style={{
-                      ...tdValue,
-                      paddingTop: 6,
-                      whiteSpace: "normal",
-                      wordBreak: "break-word",
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    {address?.complete_address}
-                  </td>
-                </tr>
-                <tr>
-                  <td style={{ ...tdLabel, paddingTop: 8 }}>ATTN</td>
-                  <td style={{ ...tdColon, paddingTop: 8 }}>:</td>
-                  <td style={{ ...tdValue, paddingTop: 8, fontWeight: 800 }}>
-                    {address?.pic_name || "-"} ({address?.pic_phone || "-"})
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <tbody>
-                <tr>
-                  <td style={tdLabel}>SO No.</td>
-                  <td style={tdColon}>:</td>
-                  <td style={{ ...tdValue, fontWeight: 900, fontSize: 12 }}>
-                    {salesOrder.so_number}
-                  </td>
-                </tr>
-                <tr>
-                  <td style={{ ...tdLabel, paddingTop: 6 }}>Date</td>
-                  <td style={{ ...tdColon, paddingTop: 6 }}>:</td>
-                  <td style={{ ...tdValue, paddingTop: 6 }}>
-                    {new Date(salesOrder.created_at).toLocaleDateString(
-                      "en-GB",
-                      { day: "2-digit", month: "short", year: "numeric" },
-                    )}
-                  </td>
-                </tr>
-                <tr>
-                  <td colSpan={3} style={{ paddingTop: 16 }}>
-                    <div
-                      style={{
-                        background: "#f8f9fa",
-                        border: "1px solid #ccc",
-                        padding: "8px 12px",
-                        borderRadius: 6,
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: 10,
-                          color: "#666",
-                          fontWeight: "bold",
-                          display: "block",
-                          marginBottom: 4,
-                        }}
-                      >
-                        CUSTOMER P.O NUMBER :
-                      </span>
-                      <span
-                        style={{
-                          fontSize: 14,
-                          fontWeight: 900,
-                          color: "#d35400",
-                          display: "block",
-                        }}
-                      >
-                        {salesOrder.po_number || "TIDAK ADA PO"}
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <div style={infoCard}>
+              <div style={{ ...docLabel, marginBottom: 6 }}>ORDER BY</div>
+              <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 12 }}>
+                {customer?.company_name}
+              </div>
+              <div style={{ ...docLabel, marginBottom: 4 }}>SHIP TO</div>
+              <div
+                style={{
+                  fontSize: 10.5,
+                  lineHeight: 1.55,
+                  color: "#2C2C2B",
+                  whiteSpace: "normal",
+                  wordBreak: "break-word",
+                }}
+              >
+                {address?.complete_address}
+              </div>
+              <div
+                style={{
+                  marginTop: 12,
+                  paddingTop: 10,
+                  borderTop: "1px solid #E6E5E3",
+                  fontSize: 10.5,
+                }}
+              >
+                <span style={docLabel}>ATTN&nbsp;&nbsp;</span>
+                <span style={{ fontWeight: 700 }}>
+                  {address?.pic_name || "-"}
+                </span>
+                <span style={{ color: "#7D7A75" }}>
+                  {" "}
+                  · {address?.pic_phone || "-"}
+                </span>
+              </div>
+            </div>
+            <div style={infoCard}>
+              <div style={{ ...docLabel, marginBottom: 10 }}>
+                ORDER DETAILS
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "baseline",
+                  gap: 12,
+                  marginBottom: 8,
+                }}
+              >
+                <span style={{ fontSize: 10, color: "#7D7A75", flexShrink: 0 }}>
+                  SO Number
+                </span>
+                <span style={{ fontSize: 12, fontWeight: 800 }}>
+                  {salesOrder.so_number}
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "baseline",
+                  gap: 12,
+                  marginBottom: 12,
+                }}
+              >
+                <span style={{ fontSize: 10, color: "#7D7A75", flexShrink: 0 }}>
+                  Date
+                </span>
+                <span style={{ fontSize: 11, fontWeight: 700 }}>
+                  {new Date(salesOrder.created_at).toLocaleDateString(
+                    "en-GB",
+                    { day: "2-digit", month: "short", year: "numeric" },
+                  )}
+                </span>
+              </div>
+              <div
+                style={{
+                  background: "#FBEBDE",
+                  borderRadius: 6,
+                  padding: "8px 10px",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 8,
+                    fontWeight: 800,
+                    letterSpacing: 1.2,
+                    color: "#D5803B",
+                    marginBottom: 3,
+                  }}
+                >
+                  CUSTOMER P.O
+                </div>
+                <div
+                  style={{ fontSize: 13, fontWeight: 800, color: "#2C2C2B" }}
+                >
+                  {salesOrder.po_number || "TIDAK ADA PO"}
+                </div>
+              </div>
+            </div>
           </div>
-
           {/* TABEL BARANG */}
           <table
             style={{
               width: "100%",
               borderCollapse: "collapse",
-              marginBottom: 20,
               tableLayout: "fixed",
+              marginBottom: 6,
             }}
           >
             <colgroup>
-              <col style={{ width: 32 }} /> 
-              <col style={{ width: 110 }} />
-              <col /> 
               <col style={{ width: 30 }} />
-              <col style={{ width: 35 }} /> 
+              <col style={{ width: 105 }} />
+              <col />
+              <col style={{ width: 38 }} />
+              <col style={{ width: 44 }} />
               <col style={{ width: 100 }} />
-              <col style={{ width: 40 }} /> 
-              <col style={{ width: 110 }} />
+              <col style={{ width: 42 }} />
+              <col style={{ width: 108 }} />
             </colgroup>
             <thead>
               <tr>
-                <th style={thStyle}>No</th>
-                <th style={thStyle}>Part Number</th>
-                <th style={thStyle}>Description</th>
-                <th style={thStyle} colSpan={2}>
+                <th style={{ ...thCol, textAlign: "center" }}>No</th>
+                <th style={thCol}>Part Number</th>
+                <th style={thCol}>Description</th>
+                <th style={{ ...thCol, textAlign: "center" }} colSpan={2}>
                   Qty
                 </th>
-                <th style={thStyle}>Unit Price</th>
-                <th style={thStyle}>Disc</th>
-                <th style={thStyle}>Total (IDR)</th>
+                <th style={{ ...thCol, textAlign: "right" }}>Unit Price</th>
+                <th style={{ ...thCol, textAlign: "center" }}>Disc</th>
+                <th style={{ ...thCol, textAlign: "right" }}>Total (IDR)</th>
               </tr>
             </thead>
             <tbody>
               {items.map((item, index) => (
                 <tr key={item.id} style={{ pageBreakInside: "avoid" }}>
-                  <td style={{ ...tdItem, textAlign: "center" }}>
+                  <td
+                    style={{
+                      ...tdRow,
+                      textAlign: "center",
+                      color: "#7D7A75",
+                    }}
+                  >
                     {index + 1}
                   </td>
-                  <td style={{ ...tdItem, fontWeight: 800 }}>
+                  <td style={{ ...tdRow, fontWeight: 700, fontSize: 10.5 }}>
                     {item.products?.part_code}
                   </td>
                   <td
                     style={{
-                      ...tdItem,
-                      whiteSpace: "normal",
-                      wordBreak: "break-word",
+                      ...tdRow
                     }}
+                    className="whitespace-normal break-words"
                   >
-                    <div style={{ lineHeight: 1.4, fontWeight: 800 }}>
+                    <div style={{ lineHeight: 1.4, fontWeight: 700 }}>
                       {item.products?.part_name}
                     </div>
                     {item.products?.remark && (
                       <div
                         style={{
-                          fontSize: 10,
-                          color: "#888",
+                          fontSize: 9.5,
+                          color: "#7D7A75",
                           fontStyle: "italic",
                           marginTop: 2,
                         }}
@@ -507,8 +504,8 @@ export default function SalesOrderDetailClient({
                     {item.item_note && (
                       <div
                         style={{
-                          fontSize: 10,
-                          color: "#888",
+                          fontSize: 9.5,
+                          color: "#7D7A75",
                           fontStyle: "italic",
                           marginTop: 2,
                         }}
@@ -519,76 +516,106 @@ export default function SalesOrderDetailClient({
                   </td>
                   <td
                     style={{
-                      ...tdItem,
+                      ...tdRow,
                       textAlign: "center",
-                      fontWeight: 900,
+                      fontWeight: 800,
                       fontSize: 12,
                     }}
                   >
                     {item.qty}
                   </td>
-                  <td style={{ ...tdItem, textAlign: "center" }}>
+                  <td
+                    style={{
+                      ...tdRow,
+                      textAlign: "center",
+                      color: "#7D7A75",
+                      fontSize: 10,
+                    }}
+                  >
                     {item.products?.unit}
                   </td>
-                  <td style={{ ...tdItem, whiteSpace: "nowrap" }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span style={{ fontWeight: 600 }}>Rp</span>
-                      <span>{item.unit_price?.toLocaleString("id-ID")}</span>
-                    </div>
+                  <td
+                    style={{
+                      ...tdRow,
+                      textAlign: "right",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {item.unit_price?.toLocaleString("id-ID")}
                   </td>
-                  <td style={{ ...tdItem, textAlign: "center" }}>
-                    {item.discount > 0 ? `${item.discount}%` : "-"}
+                  <td style={{ ...tdRow, textAlign: "center" }}>
+                    {item.discount > 0 ? (
+                      <span
+                        style={{
+                          background: "#E5F2FC",
+                          color: "#2783DE",
+                          fontWeight: 700,
+                          fontSize: 9.5,
+                          padding: "2px 7px",
+                          borderRadius: 4,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {item.discount}%
+                      </span>
+                    ) : (
+                      <span style={{ color: "#B5B3AF" }}>—</span>
+                    )}
                   </td>
                   <td
-                    style={{ ...tdItem, whiteSpace: "nowrap", fontWeight: 900 }}
+                    style={{
+                      ...tdRow,
+                      textAlign: "right",
+                      whiteSpace: "nowrap",
+                      fontWeight: 700,
+                    }}
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span>Rp</span>
-                      <span>{item.total_price?.toLocaleString("id-ID")}</span>
-                    </div>
+                    {item.total_price?.toLocaleString("id-ID")}
                   </td>
                 </tr>
               ))}
               <tr style={{ pageBreakInside: "avoid" }}>
                 <td
-                  colSpan={7}
+                  colSpan={6}
                   style={{
-                    ...tdItem,
                     textAlign: "right",
-                    fontWeight: 900,
-                    fontSize: 12,
-                    paddingRight: 16,
-                    borderTop: "2px solid #ccc",
+                    padding: "16px 14px 4px 6px",
+                    fontSize: 10,
+                    fontWeight: 800,
+                    letterSpacing: 1.5,
+                    color: "#7D7A75",
+                    verticalAlign: "middle",
                   }}
                 >
                   GRAND TOTAL
                 </td>
                 <td
-                  style={{
-                    ...tdItem,
-                    fontWeight: 900,
-                    fontSize: 13,
-                    whiteSpace: "nowrap",
-                    color: "#2c3e50",
-                    borderTop: "2px solid #ccc",
-                    background: "#f8f9fa",
-                  }}
+                  colSpan={2}
+                  style={{ padding: "10px 0 4px", verticalAlign: "middle" }}
                 >
                   <div
-                    style={{ display: "flex", justifyContent: "space-between" }}
+                    style={{
+                      background: "#2C2C2B",
+                      color: "#ffffff",
+                      borderRadius: 6,
+                      padding: "8px 14px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "baseline",
+                      whiteSpace: "nowrap",
+                    }}
                   >
-                    <span>Rp</span>
-                    <span>
+                    <span
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 700,
+                        opacity: 0.7,
+                        marginRight: 10,
+                      }}
+                    >
+                      Rp
+                    </span>
+                    <span style={{ fontSize: 14, fontWeight: 900 }}>
                       {salesOrder.grand_total?.toLocaleString("id-ID")}
                     </span>
                   </div>
@@ -596,148 +623,153 @@ export default function SalesOrderDetailClient({
               </tr>
             </tbody>
           </table>
-
           {/* INTERNAL NOTES */}
-          <div style={{ marginBottom: 40, pageBreakInside: "avoid" }}>
-            <p
-              style={{
-                margin: "0 0 4px",
-                fontWeight: 800,
-                fontSize: 10,
-                background: "#f1f1f1",
-                display: "inline-block",
-                padding: "4px 10px",
-                borderRadius: "4px 4px 0 0",
-              }}
-            >
-              INTERNAL REMARKS / INSTRUCTIONS :
-            </p>
+          <div style={{ margin: "26px 0 40px", pageBreakInside: "avoid" }}>
             <div
               style={{
-                border: "1px dashed #ccc",
-                padding: "12px",
-                minHeight: "60px",
-                fontSize: 11,
-                fontStyle: "italic",
-                color: "#555",
-                borderRadius: "0 4px 4px 4px",
+                background: "#F9F8F7",
+                border: "1px solid #E6E5E3",
+                borderLeft: "3px solid #2783DE",
+                borderRadius: 8,
+                padding: "12px 14px",
               }}
             >
-              {salesOrder.notes ||
-                "Harap diproses sesuai standard operasi perusahaan. Segera terbitkan Surat Jalan (Delivery Order) jika barang sudah siap."}
+              <div style={{ ...docLabel, marginBottom: 5 }}>
+                INTERNAL REMARKS / INSTRUCTIONS
+              </div>
+              <div
+                style={{
+                  fontSize: 10.5,
+                  fontStyle: "italic",
+                  color: "#55514C",
+                  lineHeight: 1.55,
+                }}
+              >
+                {salesOrder.notes ||
+                  "Harap diproses sesuai standard operasi perusahaan. Segera terbitkan Surat Jalan (Delivery Order) jika barang sudah siap."}
+              </div>
             </div>
           </div>
-
           {/* TANDA TANGAN */}
-          <div
+          {/* <div
             style={{
               display: "flex",
               justifyContent: "space-between",
-              padding: "0 20px",
+              gap: 24,
+              padding: "0 8px",
               pageBreakInside: "avoid",
             }}
           >
-            <div style={{ textAlign: "center", width: "25%" }}>
-              <p style={{ margin: 0, fontSize: 10, color: "#666" }}>
-                Prepared By,
-              </p>
-              <div style={{ height: 70 }} />
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: 11,
-                  fontWeight: 800,
-                  textDecoration: "underline",
-                }}
-              >
-                Tim Admin Sales
-              </p>
-              <p
-                style={{ margin: 0, fontSize: 9, color: "#999", marginTop: 4 }}
-              >
-                Date: ........................
-              </p>
+            <div style={{ flex: 1, textAlign: "center" }}>
+              <div style={sigLabel}>Prepared By</div>
+              <div style={{ height: 64 }} />
+              <div style={sigLine}>
+                <div style={{ fontSize: 11, fontWeight: 800 }}>
+                  Tim Admin Sales
+                </div>
+                <div style={{ fontSize: 8.5, color: "#9C9A96", marginTop: 3 }}>
+                  Date: ........................
+                </div>
+              </div>
             </div>
-            <div style={{ textAlign: "center", width: "25%" }}>
-              <p style={{ margin: 0, fontSize: 10, color: "#666" }}>
-                Authorized By,
-              </p>
-              <div style={{ height: 70 }} />
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: 11,
-                  fontWeight: 800,
-                  textDecoration: "underline",
-                }}
-              >
-                ..........................................
-              </p>
-              <p
-                style={{ margin: 0, fontSize: 9, color: "#999", marginTop: 4 }}
-              >
-                Sales Manager / Director
-              </p>
+            <div style={{ flex: 1, textAlign: "center" }}>
+              <div style={sigLabel}>Authorized By</div>
+              <div style={{ height: 64 }} />
+              <div style={sigLine}>
+                <div style={{ fontSize: 11, fontWeight: 800 }}>
+                  ..........................................
+                </div>
+                <div style={{ fontSize: 8.5, color: "#9C9A96", marginTop: 3 }}>
+                  Sales Manager / Director
+                </div>
+              </div>
             </div>
-            <div style={{ textAlign: "center", width: "25%" }}>
-              <p style={{ margin: 0, fontSize: 10, color: "#666" }}>
-                Checked By (Warehouse),
-              </p>
-              <div style={{ height: 70 }} />
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: 11,
-                  fontWeight: 800,
-                  textDecoration: "underline",
-                }}
-              >
-                ..........................................
-              </p>
-              <p
-                style={{ margin: 0, fontSize: 9, color: "#999", marginTop: 4 }}
-              >
-                Kepala Gudang
-              </p>
+            <div style={{ flex: 1, textAlign: "center" }}>
+              <div style={sigLabel}>Checked By (Warehouse)</div>
+              <div style={{ height: 64 }} />
+              <div style={sigLine}>
+                <div style={{ fontSize: 11, fontWeight: 800 }}>
+                  ..........................................
+                </div>
+                <div style={{ fontSize: 8.5, color: "#9C9A96", marginTop: 3 }}>
+                  Kepala Gudang
+                </div>
+              </div>
             </div>
+          </div> */}
+          {/* FOOTER */}
+          <div
+            style={{
+              position: "absolute",
+              left: 48,
+              right: 48,
+              bottom: 28,
+              borderTop: "1px solid #E6E5E3",
+              paddingTop: 10,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 16,
+            }}
+          >
+            <span style={{ fontSize: 8.5, color: "#9C9A96" }}>
+              Terima kasih atas kepercayaan Anda.
+            </span>
+            <span
+              style={{
+                fontSize: 8.5,
+                color: "#9C9A96",
+                textAlign: "right",
+              }}
+            >
+              CV Harmonindo Jaya Part — SOHO Capital Lt. 32 Unit 7, Jakarta
+              Barat
+            </span>
           </div>
         </div>
       </div>
     </div>
   );
 }
-
 /* Style helpers */
-const tdBase: React.CSSProperties = {
-  padding: "2px 0",
-  verticalAlign: "top",
-  fontSize: 11,
-};
-const tdLabel: React.CSSProperties = {
-  ...tdBase,
+const docLabel: React.CSSProperties = {
+  fontSize: 8.5,
   fontWeight: 800,
-  whiteSpace: "nowrap",
-  color: "#555",
-};
-const tdColon: React.CSSProperties = {
-  ...tdBase,
-  width: 12,
-  textAlign: "center",
-};
-const tdValue: React.CSSProperties = { ...tdBase, color: "#000" };
-const thStyle: React.CSSProperties = {
-  border: "1px solid #2c3e50",
-  padding: "8px 6px",
-  textAlign: "center",
-  background: "#2c3e50",
-  color: "#ffffff",
-  fontWeight: 800,
-  fontSize: 10,
+  letterSpacing: 1.5,
   textTransform: "uppercase",
+  color: "#7D7A75",
 };
-const tdItem: React.CSSProperties = {
-  border: "1px solid #ccc",
+const infoCard: React.CSSProperties = {
+  background: "#F9F8F7",
+  border: "1px solid #E6E5E3",
+  borderRadius: 10,
+  padding: "16px 18px",
+};
+const thCol: React.CSSProperties = {
+  fontSize: 8.5,
+  fontWeight: 800,
+  letterSpacing: 1.2,
+  textTransform: "uppercase",
+  color: "#7D7A75",
   padding: "8px 6px",
+  borderBottom: "2px solid #2C2C2B",
+  textAlign: "left",
+};
+const tdRow: React.CSSProperties = {
+  padding: "10px 6px",
+  borderBottom: "1px solid #E6E5E3",
   fontSize: 11,
   verticalAlign: "middle",
+};
+const sigLabel: React.CSSProperties = {
+  fontSize: 9,
+  fontWeight: 700,
+  letterSpacing: 1,
+  textTransform: "uppercase",
+  color: "#7D7A75",
+};
+const sigLine: React.CSSProperties = {
+  borderTop: "1.5px solid #2C2C2B",
+  margin: "0 12px",
+  paddingTop: 6,
 };

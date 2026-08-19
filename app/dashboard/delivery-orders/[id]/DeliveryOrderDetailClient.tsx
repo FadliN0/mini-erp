@@ -196,8 +196,12 @@ export default function DeliveryOrderDetailClient({
                 return (
                   <tr key={item.id}>
                     <td style={{ ...tdItem, textAlign: 'center' }}>{index + 1}</td>
-                    <td style={{ ...tdItem, fontWeight: 700 }}>{product?.part_code || '-'}</td>
-                    <td style={{ ...tdItem, whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                    <td style={{ ...tdItem, fontWeight: 700}} className="whitespace-normal break-words">
+                      {product?.part_code || '-'}
+                      </td>
+                    <td style={{ ...tdItem}} 
+                      className="whitespace-normal break-words"
+                    >
                       {product?.part_name || '-'}
                     </td>
                     <td style={{ ...tdItem, textAlign: 'center', fontWeight: 800 }}>{item.qty_delivered}</td>

@@ -112,7 +112,7 @@ export default function SmartPasteProduct() {
             WhatsApp. <br />
             Urutan wajib:{' '}
             <span className="font-mono font-bold text-slate-900 bg-white px-1 py-0.5 rounded border">
-              Part Code - Nama Part - Harga - Satuan - Keterangan
+              Part Code - Nama Part - Satuan - Harga - Keterangan
             </span>
             .<br />
             Note:{' '}
@@ -151,12 +151,12 @@ export default function SmartPasteProduct() {
                     </th>
                     <th className="p-3 text-xs font-bold text-slate-500 uppercase">
                       Nama Part
+                    </th>            
+                    <th className="p-3 text-xs font-bold text-slate-500 uppercase text-center">
+                      Satuan
                     </th>
                     <th className="p-3 text-xs font-bold text-slate-500 uppercase text-right">
                       Harga
-                    </th>
-                    <th className="p-3 text-xs font-bold text-slate-500 uppercase text-center">
-                      Satuan
                     </th>
                     <th className="p-3 text-xs font-bold text-slate-500 uppercase">
                       Keterangan
@@ -172,11 +172,11 @@ export default function SmartPasteProduct() {
                       <td className="p-3 font-bold text-slate-800">
                         {item.part_name}
                       </td>
-                      <td className="p-3 text-right font-black text-slate-800">
-                        {fmtRp(item.price)}
-                      </td>
                       <td className="p-3 text-center text-slate-600">
                         {item.unit}
+                      </td>
+                      <td className="p-3 text-right font-black text-slate-800">
+                        {fmtRp(item.price)}
                       </td>
                       <td className="p-3 text-slate-500">
                         {item.remark || '-'}

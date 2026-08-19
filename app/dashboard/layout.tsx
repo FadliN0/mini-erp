@@ -237,7 +237,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 height={40}
               />
             </div>
-            <span className="font-black text-lg">H-Part</span>
+            <span className="font-black text-lg text-amber-500">H!-Part</span>
           </div>
           <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-slate-300 hover:text-white">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
