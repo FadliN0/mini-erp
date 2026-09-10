@@ -91,7 +91,7 @@ export default function InvoiceDetailClient({
   );
   const [invoiceNote, setInvoiceNote] = useState(
     invoice.due_date_note ||
-      "Pembayaran ditransfer ke rekening:\nBank MANDIRI No. 1560024959530\na.n CV HARMONISINDO JAYA PART",
+      "Pembayaran ditransfer ke rekening:\nBank MANDIRI No. 1560024959530\na.n HARMONISINDO JAYA PART",
   );
   const [itemNotes, setItemNotes] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
