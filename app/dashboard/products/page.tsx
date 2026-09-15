@@ -9,7 +9,8 @@ export default async function ProductsPage() {
   const { data: products } = await supabase
     .from('products')
     .select('*')
-    .order('part_code', { ascending: true });
+    .order('part_code', { ascending: true })
+    .limit(5000);
 
   return <ProductClient initialProducts={products || []} />;
 }
