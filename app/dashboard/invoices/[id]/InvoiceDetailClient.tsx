@@ -103,7 +103,8 @@ export default function InvoiceDetailClient({
   });
   const [isSavingAll, setIsSavingAll] = useState(false);
 
-  const todayFormatted = new Date().toLocaleDateString("id-ID", {
+  const invoiceDateSource = invoice?.issue_date || invoice?.created_at || new Date().toISOString();
+  const todayFormatted = new Date(invoiceDateSource).toLocaleDateString("id-ID", {
     day: "2-digit",
     month: "long",
     year: "numeric",
@@ -111,7 +112,7 @@ export default function InvoiceDetailClient({
 
   const subTotal = items.reduce(
     (sum, item) =>
-      sum + (item.total_price || item.qty_billed * item.unit_price || 0),
+      sum + (item.total_price ?? (item.qty_billed ?? item.qty ?? 0) * (item.unit_price ?? 0)),
     0,
   );
   const grandTotal = subTotal - discountInput;
@@ -503,7 +504,7 @@ export default function InvoiceDetailClient({
                       <tr>
                         <td style={ { width: 45, fontWeight: 700 } }>Email</td>
                         <td style={ { width: 15, fontWeight: 700 } }>:</td>
-                        <td>{billingAddress?.pic_email || "-"}</td>
+                        <td>{billingAddress?.pic_email || customer?.email || "-"}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -578,9 +579,9 @@ export default function InvoiceDetailClient({
                 <tbody>
                   {pageItems.map((item, index) => {
                     const product = item.products || item;
-                    const qty = item.qty_billed || item.qty || 1;
-                    const price = item.unit_price || 0;
-                    const amount = item.total_price || qty * price;
+                    const qty = item.qty_billed ?? item.qty ?? 1;
+                    const price = item.unit_price ?? 0;
+                    const amount = item.total_price ?? qty * price;
                     const noteTargetId = item.invoice_item_id || item.id;
                     return (
                       <tr key={item.id || `${pageIndex}-${index}`}>
@@ -642,9 +643,9 @@ export default function InvoiceDetailClient({
                         <td
                           colSpan={4}
                           rowSpan={3}
-                          style={ { border: borderCell, borderTop: "3px double #000", padding: "1px 14px", verticalAlign: "center"} }
+                          style={ { border: borderCell, borderTop: "3px double #000", padding: "1px 14px", verticalAlign: "middle"} }
                         >
-                          <p style={ { margin: "0 0 6px", fontWeight: 900, fontSize: "13ERTYUIOO0``  px", textDecoration: "underline" } }>
+                          <p style={ { margin: "0 0 6px", fontWeight: 900, fontSize: "13px", textDecoration: "underline" } }>
                             PAYMENT INSTRUCTION / NOTES :
                           </p>
                           <textarea
@@ -968,6 +969,6 @@ const tdItem: React.CSSProperties = {
   border: "1px solid #000",
   padding: "8px 7px",
   fontSize: 11,
-  verticalAlign: "center",
+  verticalAlign: "middle",
   color: "#000",
 };
