@@ -45,8 +45,15 @@ export default async function DashboardHome() {
   data.forEach(trx => {
     const paid = Number(trx.total_paid_amount) || 0;
     const invTotal = Number(trx.invoice_total) || 0;
+    const invStatus = (trx.invoice_status || '').toLowerCase();
 
-    if (trx.invoice_date && trx.invoice_status !== 'Uninvoiced') {
+    // Pastikan BUKAN Uninvoiced dan BUKAN Cancelled
+    if (
+      trx.invoice_date &&
+      invStatus !== 'uninvoiced' &&
+      invStatus !== 'cancelled' &&
+      invStatus !== 'canceled'
+    ) {
       const invDate = new Date(trx.invoice_date);
       
       // Omset Bulan Ini
@@ -61,14 +68,19 @@ export default async function DashboardHome() {
         chartMap.set(key, { ...current, total: current.total + invTotal });
       }
 
-      // Hitung Piutang
+      // Hitung Piutang (Hanya dari invoice aktif yang belum lunas)
       if (invTotal > paid) {
         piutang += (invTotal - paid);
       }
     }  
     
-    // Hitung Pesanan Aktif
-    if (trx.delivery_status !== 'Completed') {
+    // Hitung Pesanan Aktif (Abaikan jika SO juga berstatus Cancelled)
+    const soStatus = (trx.so_status || '').toLowerCase();
+    if (
+      trx.delivery_status !== 'Completed' &&
+      soStatus !== 'cancelled' &&
+      soStatus !== 'canceled'
+    ) {
       pesanan += 1;
     }
   });
