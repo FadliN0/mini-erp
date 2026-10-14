@@ -33,7 +33,7 @@ export default async function SalesOrderDetailPage({
       .select(`*, products ( part_code, part_name, unit, remark )`)
       .eq('so_id', id),
     supabase.from('delivery_orders').select('id', { count: 'exact', head: true }).eq('so_id', id),
-    supabase.from('invoices').select('id', { count: 'exact', head: true }).eq('so_id', id),
+    supabase.from('invoices').select('id', { count: 'exact', head: true }).eq('so_id', id).neq('status', 'Cancelled'),
   ]);
 
   return (
