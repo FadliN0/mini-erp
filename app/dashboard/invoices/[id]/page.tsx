@@ -13,82 +13,75 @@ export default async function InvoiceDetailPage({
   const supabase = await createClient();
   const { id } = await params;
 
+  // 1. Ambil Invoice sekaligus relasi SO, Customer, dan Address dalam 1 langkah
   const { data: invoice } = await supabase
     .from('invoices')
-    .select('*')
+    .select(`
+      *,
+      sales_orders (*),
+      customers (*),
+      customer_addresses (*)
+    `)
     .eq('id', id)
     .single();
 
   if (!invoice) notFound();
 
-  const [{ data: paymentsHistory }, soResult] = await Promise.all([
+  // 2. Ambil History Pembayaran dan Item Invoice secara paralel
+  const [{ data: paymentsHistory }, { data: invItemsData }] = await Promise.all([
     supabase
       .from('payments')
       .select('*')
       .eq('invoice_id', id)
       .order('created_at', { ascending: true }),
-    invoice.so_id
-      ? supabase
-          .from('sales_orders')
-          .select('*')
-          .eq('id', invoice.so_id)
-          .single()
-      : Promise.resolve({ data: null }),
-  ]);
-
-  const salesOrder = soResult?.data ?? null;
-
-  let customer = null;
-  let billingAddress = null;
-  if (salesOrder?.customer_id) {
-    const [{ data: custData }, { data: allAddrs }] = await Promise.all([
-      supabase
-        .from('customers')
-        .select('*')
-        .eq('id', salesOrder.customer_id)
-        .single(),
-      supabase
-        .from('customer_addresses')
-        .select('*')
-        .eq('customer_id', salesOrder.customer_id),
-    ]);
-    customer = custData ?? null;
-    if (allAddrs && allAddrs.length > 0) {
-      billingAddress =
-        allAddrs.find(
-          (a: any) => a.address_type?.toLowerCase() === 'billing',
-        ) || allAddrs[0];
-    }
-  }
-
-  const [{ data: soItemsData }, { data: invItemsData }] = await Promise.all([
-    supabase
-      .from('sales_order_items')
-      .select(
-        'id, qty, unit_price, total_price, products ( part_code, part_name, unit, remark )',
-      )
-      .eq('so_id', invoice.so_id),
     supabase
       .from('invoice_items')
-      .select('id, so_item_id, qty_billed, item_note')
+      .select(`
+        id,
+        so_item_id,
+        qty_billed,
+        unit_price,
+        discount,
+        total_price,
+        item_note,
+        sales_order_items (
+          id,
+          product_id,
+          qty,
+          products ( part_code, part_name, unit, remark )
+        )
+      `)
       .eq('invoice_id', id),
   ]);
 
-  const items = (soItemsData || []).map((soItem: any) => {
-    const matchedInvItem = invItemsData?.find(
-      (invItem: any) => invItem.so_item_id === soItem.id,
-    );
+  // 3. Mapping item berbasis invoice_items (tetap mempertahankan struktur prop untuk UI)
+  const items = (invItemsData || []).map((invItem: any) => {
+    const soItem = invItem.sales_order_items || {};
     return {
-      ...soItem,
-      invoice_item_id: matchedInvItem?.id,
-      qty_billed: matchedInvItem?.qty_billed || soItem.qty,
-      item_note: matchedInvItem?.item_note || '',
+      id: soItem.id || invItem.so_item_id,
+      product_id: soItem.product_id,
+      products: soItem.products,
+      qty: soItem.qty ?? invItem.qty_billed,
+      invoice_item_id: invItem.id,
+      qty_billed: invItem.qty_billed,
+      unit_price: invItem.unit_price,   // Murni dari invoice_items
+      discount: invItem.discount ?? 0,  // Murni dari invoice_items
+      total_price: invItem.total_price, // Murni dari invoice_items
+      item_note: invItem.item_note || '',
     };
   });
 
+  // Pisahkan objek relasi agar prop invoice tetap bersih seperti sebelumnya
+  const {
+    sales_orders: salesOrder,
+    customers: customer,
+    customer_addresses: billingAddress,
+    ...cleanInvoice
+  } = invoice;
+
   return (
     <InvoiceDetailClient
-      invoice={invoice}
+      invoice={cleanInvoice}
       salesOrder={salesOrder}
       customer={customer}
       billingAddress={billingAddress}
