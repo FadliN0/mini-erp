@@ -22,14 +22,34 @@ type InvoiceDetailClientProps = {
   paymentsHistory: any[];
 };
 
-// ==== Kapasitas item per halaman (SAMA RATA tiap halaman) ====
-const ROWS_PER_PAGE = 8;
+// Kapasitas baris untuk halaman penuh (tanpa TTD) vs halaman terakhir (dengan Total + TTD)
+const ROWS_FULL_PAGE = 11; 
+const ROWS_LAST_PAGE = 7; 
 
 function paginateItems<T>(list: T[]): T[][] {
   if (list.length === 0) return [[]];
+  if (list.length <= ROWS_LAST_PAGE) return [list];
+
   const result: T[][] = [];
-  for (let i = 0; i < list.length; i += ROWS_PER_PAGE) {
-    result.push(list.slice(i, i + ROWS_PER_PAGE));
+  let remaining = [...list];
+
+  while (remaining.length > 0) {
+    // Jika sisa item muat di halaman terakhir (<= 7 item), masukkan semuanya
+    if (remaining.length <= ROWS_LAST_PAGE) {
+      result.push(remaining);
+      break;
+    }
+    // Jika sisa item tanggung (misal 8, 9, 10, atau 11 item):
+    // Jangan habiskan semua di halaman ini agar halaman berikutnya tidak cuma berisi TTD kosong!
+    // Ambil sebagian sehingga minimal ada 2 item yang ikut menemani Total & TTD di halaman berikutnya.
+    if (remaining.length <= ROWS_FULL_PAGE) {
+      const takeCount = remaining.length - 2;
+      result.push(remaining.slice(0, takeCount));
+      remaining = remaining.slice(takeCount);
+    } else {
+      result.push(remaining.slice(0, ROWS_FULL_PAGE));
+      remaining = remaining.slice(ROWS_FULL_PAGE);
+    }
   }
   return result;
 }
@@ -382,24 +402,31 @@ export default function InvoiceDetailClient({
       <div className="w-full overflow-x-auto pb-6 custom-scrollbar print:overflow-visible print:pb-0 relative">
         {pages.map((pageItems, pageIndex) => {
           const isLastPage = pageIndex === totalPages - 1;
-          const startNo = pageIndex * ROWS_PER_PAGE;
-          const emptyRowsCount = Math.max(0, ROWS_PER_PAGE - pageItems.length);
+          // Hitung nomor urut berdasarkan jumlah item di halaman-halaman sebelumnya
+          const startNo = pages
+            .slice(0, pageIndex)
+            .reduce((acc, p) => acc + p.length, 0);
+          
+          // Baris kosong menyesuaikan apakah ini halaman terakhir atau halaman penuh
+          const targetRows = isLastPage ? ROWS_LAST_PAGE : ROWS_FULL_PAGE;
+          const emptyRowsCount = Math.max(0, targetRows - pageItems.length);
 
           return (
             <div
               key={pageIndex}
               className="invoice-sheet bg-white print:shadow-none print:border-none print:rounded-none relative overflow-hidden shadow-xl border border-slate-200 mx-auto mb-8 print:mb-0"
-              style={ {
+              style={{
                 width: "210mm",
-                minHeight: "296mm",
-                padding: "20mm",
+                minHeight: "285mm", // Dikurangi dari 296mm agar tidak memicu halaman kosong saat print
+                padding: "14mm 18mm", // Margin atas-bawah lebih efisien (1.4 cm)
                 boxSizing: "border-box",
                 fontFamily: font,
                 fontSize: baseSize,
                 color: "#000",
                 breakAfter: isLastPage ? "auto" : "page",
                 pageBreakAfter: isLastPage ? "auto" : "always",
-              } }
+                pageBreakInside: "avoid",
+              }}
             >
               {isPaid && (
                 <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 border-[12px] border-emerald-500 text-emerald-500 px-10 py-2 rounded-3xl text-9xl font-black uppercase tracking-widest opacity-20 transform -rotate-[25deg] pointer-events-none z-50 print:opacity-[0.15]">
@@ -695,15 +722,15 @@ export default function InvoiceDetailClient({
 
               {/* TANGGAL & TANDA TANGAN → HANYA di halaman terakhir */}
               {isLastPage && (
-                <div style={ { display: "flex", justifyContent: "flex-end", marginTop: 32, pageBreakInside: "avoid" } }>
-                  <div style={ { textAlign: "center", minWidth: 150 } }>
-                    <p style={ { margin: 0, fontSize: baseSize } }>Jakarta, {todayFormatted}</p>
-                    <p style={ { margin: 0, fontSize: baseSize } }>Harmonisindo JayaPart</p>
-                    <div style={ { height: 130 } } />
-                    <p style={ { margin: 0, fontSize: baseSize, fontWeight: 700, textDecoration: "underline" } }>
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16, pageBreakInside: "avoid" }}>
+                  <div style={{ textAlign: "center", minWidth: 150 }}>
+                    <p style={{ margin: 0, fontSize: baseSize }}>Jakarta, {todayFormatted}</p>
+                    <p style={{ margin: 0, fontSize: baseSize }}>Harmonisindo JayaPart</p>
+                    <div style={{ height: 75 }} />
+                    <p style={{ margin: 0, fontSize: baseSize, fontWeight: 700, textDecoration: "underline" }}>
                       Hana Khamila
                     </p>
-                    <p style={ { margin: 0, fontSize: baseSize } }>Direktur</p>
+                    <p style={{ margin: 0, fontSize: baseSize }}>Direktur</p>
                   </div>
                 </div>
               )}
