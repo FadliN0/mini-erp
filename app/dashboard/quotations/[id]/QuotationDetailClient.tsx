@@ -6,6 +6,37 @@ import {
   updateQuotationStatusAction,
   generateSalesOrderAction,
 } from "./actions";
+
+/* ─── Konfigurasi Pagination Pintar ─── */
+const ROWS_FULL_PAGE = 12; // Kapasitas halaman penuh (tanpa Total, Note & TTD)
+const ROWS_LAST_PAGE = 8;  // Kapasitas halaman terakhir (dengan Total, Note & TTD)
+
+function paginateItems<T>(list: T[]): T[][] {
+  if (list.length === 0) return [[]];
+  if (list.length <= ROWS_LAST_PAGE) return [list];
+
+  const result: T[][] = [];
+  let remaining = [...list];
+
+  while (remaining.length > 0) {
+    if (remaining.length <= ROWS_LAST_PAGE) {
+      result.push(remaining);
+      break;
+    }
+    // Jika sisa item tanggung (misal 9 - 12 item), sisakan 2 item untuk halaman berikutnya
+    // agar halaman terakhir tidak hanya berisi Total & Tanda Tangan sendirian
+    if (remaining.length <= ROWS_FULL_PAGE) {
+      const takeCount = remaining.length - 2;
+      result.push(remaining.slice(0, takeCount));
+      remaining = remaining.slice(takeCount);
+    } else {
+      result.push(remaining.slice(0, ROWS_FULL_PAGE));
+      remaining = remaining.slice(ROWS_FULL_PAGE);
+    }
+  }
+  return result;
+}
+
 /* ─── Style helpers ─── */
 const tdBase: React.CSSProperties = {
   padding: "2px 0",
@@ -34,6 +65,7 @@ const tdItem: React.CSSProperties = {
   fontSize: 11,
   verticalAlign: "middle",
 };
+
 type QuotationDetailClientProps = {
   id: string;
   initialQuotation: any;
@@ -42,6 +74,7 @@ type QuotationDetailClientProps = {
   items: any[];
   initialExistingSO: any;
 };
+
 export default function QuotationDetailClient({
   id,
   initialQuotation,
@@ -50,12 +83,9 @@ export default function QuotationDetailClient({
   items,
   initialExistingSO,
 }: QuotationDetailClientProps) {
-
   const [quotation, setQuotation] = useState<any>(initialQuotation);
   const [existingSO, setExistingSO] = useState<any>(initialExistingSO);
-  // Sub total = jumlah amount tiap item. Diskon nominal (tingkat dokumen) TIDAK
-  // disimpan di database, jadi diturunkan dari selisih sub total dengan grand
-  // total yang tersimpan. Hanya ditampilkan di surat bila memang ada diskon.
+
   const subTotal = (items || []).reduce(
     (sum: number, i: any) => sum + (i.total_price || 0),
     0,
@@ -64,9 +94,11 @@ export default function QuotationDetailClient({
     0,
     Math.round(subTotal - (initialQuotation?.grand_total || 0)),
   );
+
   const [isCreatingSO, setIsCreatingSO] = useState(false);
   const [isPOModalOpen, setIsPOModalOpen] = useState(false);
   const [poInput, setPoInput] = useState("");
+
   const handleUpdateStatus = async (newStatus: string) => {
     if (existingSO) {
       alert("Dokumen ini sudah terkunci karena Sales Order telah diterbitkan.");
@@ -75,12 +107,14 @@ export default function QuotationDetailClient({
     const res = await updateQuotationStatusAction(id, newStatus);
     if (res.success) setQuotation({ ...quotation, status: newStatus });
   };
+
   const handlePrint = () => {
     window.print();
     if (quotation.status === "Draft") {
       handleUpdateStatus("Sent");
     }
   };
+
   const getValidityDays = () => {
     if (!quotation?.created_at || !quotation?.valid_until) return 0;
     const start = new Date(quotation.created_at).getTime();
@@ -88,6 +122,7 @@ export default function QuotationDetailClient({
     const diffDays = Math.ceil((end - start) / (1000 * 3600 * 24));
     return diffDays > 0 ? diffDays : 0;
   };
+
   const handleCreateSO = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!poInput.trim()) {
@@ -131,7 +166,11 @@ export default function QuotationDetailClient({
       setIsCreatingSO(false);
     }
   };
+
   const isLocked = !!existingSO;
+  const pages = paginateItems(items || []);
+  const totalPages = pages.length;
+
   return (
     <div className="w-full max-w-[1200px] mx-auto space-y-6 pb-10 print:m-0 print:p-0 print:space-y-0 print:max-w-none text-black relative">
       {/* ── KONTROL UI ── */}
@@ -161,11 +200,10 @@ export default function QuotationDetailClient({
             </Link>
             <div className="flex flex-col gap-1 min-w-0">
               <span className="hidden sm:block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
-                  Status Dokumen
+                Status Dokumen
               </span>
-              <div className="flex items-center gap-2">             
+              <div className="flex items-center gap-2">
                 {isLocked ? (
-                  // TAMPILAN JIKA TERKUNCI (SO SUDAH TERBIT)
                   <div
                     title="Terkunci karena Sales Order sudah terbit"
                     className="bg-slate-100 text-slate-500 border border-slate-200 rounded-lg h-10 sm:h-auto px-2.5 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-not-allowed shrink-0"
@@ -187,7 +225,6 @@ export default function QuotationDetailClient({
                     <span className="hidden sm:inline">(SO Terbit)</span>
                   </div>
                 ) : (
-                  // TAMPILAN DROPDOWN JIKA BELUM TERKUNCI
                   <div
                     title="Status dokumen"
                     className={`h-10 sm:h-auto px-2.5 sm:px-3 sm:py-1.5 border-2 rounded-lg font-black uppercase tracking-wider text-[10px] sm:text-xs flex items-center justify-center text-center sm:text-left
@@ -206,7 +243,7 @@ export default function QuotationDetailClient({
                     {quotation.status === "Approved" && "Disetujui (Approved)"}
                     {quotation.status === "Rejected" && "Ditolak (Rejected)"}
                   </div>
-                )}  
+                )}
                 {!isLocked && quotation.status === "Sent" && (
                   <button
                     onClick={() => handleUpdateStatus("Approved")}
@@ -224,7 +261,6 @@ export default function QuotationDetailClient({
           <div className="flex flex-row items-center sm:items-end gap-2 sm:gap-3 shrink-0">
             <div className="flex items-center gap-2">
               {isLocked ? (
-                // TOMBOL LIHAT SO (MUNCUL JIKA TERKUNCI)
                 <Link
                   href={`/dashboard/sales-orders/${existingSO?.id}`}
                   title="Lihat Dokumen SO"
@@ -254,7 +290,6 @@ export default function QuotationDetailClient({
                 </Link>
               ) : (
                 <>
-                  {/* TOMBOL BUAT SO (HANYA MUNCUL JIKA APPROVED) */}
                   {quotation.status === "Approved" && (
                     <button
                       onClick={() => setIsPOModalOpen(true)}
@@ -278,7 +313,6 @@ export default function QuotationDetailClient({
                       <span className="btn-label">Buat SO</span>
                     </button>
                   )}
-                  {/* TOMBOL REVISI (MUNCUL JIKA MASIH DRAFT/SENT/REJECTED) */}
                   {quotation.status !== "Approved" && (
                     <Link
                       href={`/dashboard/quotations/${id}/edit`}
@@ -305,7 +339,6 @@ export default function QuotationDetailClient({
                 </>
               )}
             </div>
-            {/* TOMBOL CETAK PDF (SELALU MUNCUL) */}
             <button
               onClick={handlePrint}
               title="Cetak PDF"
@@ -330,469 +363,494 @@ export default function QuotationDetailClient({
           </div>
         </div>
       </div>
-      {/* ── WRAPPER PDF (KERTAS A4) ── */}
+
+      {/* ── WRAPPER PDF MULTI-HALAMAN (KERTAS A4) ── */}
       <div className="w-full overflow-x-auto pb-8 custom-scrollbar print:overflow-visible print:pb-0 relative">
-        <div
-          className="print-sheet bg-white shadow-xl border border-slate-200 print:shadow-none print:border-none mx-auto min-h-[297mm] print:min-h-0"
-          style={{
-            width: "210mm",
-            padding: "20mm",
-            boxSizing: "border-box",
-            fontFamily: "'Noto Sans', Arial, sans-serif",
-            fontSize: 11,
-          }}
-        >
-          {/* ── HEADER: logo + nama perusahaan + alamat (kiri saja) ── */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "flex-start",
-              gap: 8,
-              marginBottom: 2,
-            }}
-          >
-            <div style={{ flexShrink: 0 }}>
-              <Image
-                src="/logo1.png"
-                alt="CV. HJP Logo"
-                width={110}
-                height={60}
-                style={{ height: "auto", objectFit: "contain" }}
-              />
-            </div>
-            <div>
+        {pages.map((pageItems, pageIndex) => {
+          const isLastPage = pageIndex === totalPages - 1;
+          const startNo = pages
+            .slice(0, pageIndex)
+            .reduce((acc, p) => acc + p.length, 0);
+          const targetRows = isLastPage ? ROWS_LAST_PAGE : ROWS_FULL_PAGE;
+          const emptyRowsCount = Math.max(0, targetRows - pageItems.length);
+
+          return (
+            <div
+              key={pageIndex}
+              className="print-sheet bg-white shadow-xl border border-slate-200 print:shadow-none print:border-none mx-auto mb-8 print:mb-0 relative overflow-hidden"
+              style={{
+                width: "210mm",
+                minHeight: "285mm",
+                padding: "14mm 18mm", // Margin atas & bawah terjamin di setiap halaman!
+                boxSizing: "border-box",
+                fontFamily: "'Noto Sans', Arial, sans-serif",
+                fontSize: 11,
+                breakAfter: isLastPage ? "auto" : "page",
+                pageBreakAfter: isLastPage ? "auto" : "always",
+                pageBreakInside: "avoid",
+              }}
+            >
+              {/* ── HEADER: logo + nama perusahaan + alamat (diulang tiap halaman) ── */}
               <div
                 style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: "#1a1a1a",
-                  textTransform: "uppercase",
-                  marginBottom: 3,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  gap: 6,
+                  marginBottom: 4,
                 }}
               >
-                CV HARMONISINDO JAYA PART
-              </div>
-              <div style={{ fontSize: 10, color: "#444", lineHeight: 1.65 }}>
-                SOHO CAPITAL lantai. 32 unit 7 Jl. Letjen S. Parman
-                <br />
-                Kav. 28, Kelurahan Tanjung Duren Selatan
-                <br />
-                Kec. Grogol Petamburan, Jakarta Barat
-              </div>
-            </div>
-          </div>
-          {/* ── BANNER SALES QUOTATION (full width) ── */}
-          <div
-            className="print-banner-blue print-keep-bg"
-            style={{
-              backgroundColor: "#487bc8",
-              boxShadow: "inset 0 0 0 1000px #487bc8",
-              color: "#000000",
-              textAlign: "center",
-              padding: "5px 0",
-              marginBottom: 8,
-              WebkitPrintColorAdjust: "exact",
-              printColorAdjust: "exact",
-            } as React.CSSProperties}
-          >
-            <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: 1 }}>
-              Sales Quotation
-            </span>
-          </div>
-          {/* ── INFO (2 kolom) ── */}
-          {/* ── INFO (1 tabel agar tiap baris kiri-kanan selalu sejajar) ── */}
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              marginBottom: 16,
-              tableLayout: "fixed",
-            }}
-          >
-            <colgroup>
-              <col style={{ width: 50 }} /> 
-              <col style={{ width: 10 }} /> 
-              <col /> 
-              <col style={{ width: 24 }} /> 
-              <col style={{ width: 55 }} /> 
-              <col style={{ width: 10 }} /> 
-              <col style={{ width: 130 }} /> 
-            </colgroup>
-            <tbody>
-              {/* Baris 1: TO | No */}
-              <tr>
-                <td style={{ ...tdLabel, verticalAlign: "top" }}>TO</td>
-                <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
-                <td
-                  style={{
-                    ...tdValue,
-                    verticalAlign: "top",
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {customer?.company_name}
-                </td>
-                <td />
-                <td style={{ ...tdLabel, verticalAlign: "top" }}>No</td>
-                <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
-                <td
-                  style={{ ...tdValue, verticalAlign: "top", fontWeight: 700 }}
-                >
-                  {quotation.quotation_number}
-                </td>
-              </tr>
-              {/* Baris 2: Address | MR No */}
-              <tr>
-                <td style={{ ...tdLabel, verticalAlign: "top" }}>Address</td>
-                <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
-                <td
-                  style={{
-                    ...tdValue,
-                    verticalAlign: "top",
-                    whiteSpace: "pre-wrap",
-                    lineHeight: 1.6,
-                  }}
-                >
-                  {address?.complete_address}
-                </td>
-                <td />
-                <td style={{ ...tdLabel, verticalAlign: "top" }}>MR No</td>
-                <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
-                <td
-                  style={{ ...tdValue, verticalAlign: "top", fontWeight: 500 }}
-                >
-                  {quotation.mr_number || "-"}
-                </td>
-              </tr>
-              {/* Baris 3: Telp | Date */}
-              <tr>
-                <td style={{ ...tdLabel, verticalAlign: "top" }}>Telp</td>
-                <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
-                <td style={{ ...tdValue, verticalAlign: "top" }}>
-                  {address?.pic_phone ? `${address.pic_phone}` : ""}
-                </td>
-                <td />
-                <td style={{ ...tdLabel, verticalAlign: "top" }}>Date</td>
-                <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
-                <td style={{ ...tdValue, verticalAlign: "top" }}>
-                  {new Date(quotation.created_at)
-                    .toLocaleDateString("id-ID", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })
-                    .replace(/ /g, "-")}
-                </td>
-              </tr>
-              {/* Baris 4: Email | Validity */}
-              <tr>
-                <td style={{ ...tdLabel, verticalAlign: "top" }}>Email</td>
-                <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
-                <td style={{ ...tdValue, verticalAlign: "top" }}>
-                  {customer?.email || ""}
-                </td>
-                <td />
-                <td style={{ ...tdLabel, verticalAlign: "top" }}>Validity</td>
-                <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
-                <td style={{ ...tdValue, verticalAlign: "top" }}>
-                  {getValidityDays()} Days
-                </td>
-              </tr>
-              {/* Baris 5: Fax | Attn — baris paling bawah, dijamin sejajar */}
-              <tr>
-                <td style={{ ...tdLabel, verticalAlign: "top" }}>Fax</td>
-                <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
-                <td style={{ ...tdValue, verticalAlign: "top" }} />
-                <td />
-                <td style={{ ...tdLabel, verticalAlign: "top" }}>Attn</td>
-                <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
-                <td style={{ ...tdValue, verticalAlign: "top" }}>
-                  {address?.pic_name || ""}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          {/* ── TABEL BARANG ── */}
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              marginBottom: 18,
-              tableLayout: "fixed",
-            }}
-          >
-            <colgroup>
-              <col style={{ width: 30 }} /> 
-              <col style={{ width: 95 }} /> 
-              <col style={{ width: 150 }} /> 
-              <col style={{ width: 32 }} /> 
-              <col style={{ width: 32 }} /> 
-              <col style={{ width: 93 }} /> 
-              <col style={{ width: 35 }} /> 
-              <col /> 
-              <col style={{ width: 73 }} /> 
-            </colgroup>
-            <thead>
-              <tr>
-                <th style={thStyle}>No</th>
-                <th style={thStyle}>Part Number</th>
-                <th style={thStyle}>Description</th>
-                <th style={thStyle} colSpan={2}>
-                  Qty
-                </th>
-                <th style={thStyle}>Unit Price</th>
-                <th style={thStyle}>Disc</th>
-                <th style={thStyle}>Amount (IDR)</th>
-                <th style={thStyle}>Remark</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item, index) => (
-                <tr key={item.id} style={{ pageBreakInside: "avoid" }}>
-                  <td style={{ ...tdItem, textAlign: "center" }}>
-                    {index + 1}
-                  </td>
-                  <td style={{ ...tdItem, fontWeight: 400 }}
-                      className="whitespace-normal break-words"
+                <div style={{ flexShrink: 0 }}>
+                  <Image
+                    src="/logo1.png"
+                    alt="CV. HJP Logo"
+                    width={110}
+                    height={60}
+                    style={{ height: "auto", objectFit: "contain" }}
+                  />
+                </div>
+                <div>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: "#1a1a1a",
+                      textTransform: "uppercase",
+                      marginBottom: 2,
+                    }}
                   >
-                    {item.products?.part_code}
-                  </td>
-                  <td style={tdItem}>
-                    <div style={{ lineHeight: 1.4 }}>
-                      {item.products?.part_name}
-                    </div>
-                  </td>
-                  <td style={{ ...tdItem, textAlign: "center" }}>{item.qty}</td>
-                  <td style={{ ...tdItem, textAlign: "left" }}>
-                    {item.products?.unit}
-                  </td>
-                  <td style={{ ...tdItem, whiteSpace: "nowrap" }}>
-                    <div
+                    CV HARMONISINDO JAYA PART
+                  </div>
+                  <div style={{ fontSize: 10, color: "#444", lineHeight: 1.55 }}>
+                    SOHO CAPITAL lantai. 32 unit 7 Jl. Letjen S. Parman
+                    <br />
+                    Kav. 28, Kelurahan Tanjung Duren Selatan
+                    <br />
+                    Kec. Grogol Petamburan, Jakarta Barat
+                  </div>
+                </div>
+              </div>
+
+              {/* ── BANNER SALES QUOTATION (full width) ── */}
+              <div
+                className="print-banner-blue print-keep-bg"
+                style={{
+                  backgroundColor: "#487bc8",
+                  boxShadow: "inset 0 0 0 1000px #487bc8",
+                  color: "#000000",
+                  textAlign: "center",
+                  padding: "4px 0",
+                  marginBottom: 8,
+                  WebkitPrintColorAdjust: "exact",
+                  printColorAdjust: "exact",
+                } as React.CSSProperties}
+              >
+                <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: 1 }}>
+                  Sales Quotation
+                </span>
+              </div>
+
+              {/* ── INFO (1 tabel agar tiap baris kiri-kanan selalu sejajar) ── */}
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  marginBottom: 12,
+                  tableLayout: "fixed",
+                }}
+              >
+                <colgroup>
+                  <col style={{ width: 50 }} />
+                  <col style={{ width: 10 }} />
+                  <col />
+                  <col style={{ width: 24 }} />
+                  <col style={{ width: 55 }} />
+                  <col style={{ width: 10 }} />
+                  <col style={{ width: 130 }} />
+                </colgroup>
+                <tbody>
+                  <tr>
+                    <td style={{ ...tdLabel, verticalAlign: "top" }}>TO</td>
+                    <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
+                    <td
                       style={{
-                        display: "flex",
-                        justifyContent: "space-between",
+                        ...tdValue,
+                        verticalAlign: "top",
+                        fontWeight: 700,
+                        textTransform: "uppercase",
                       }}
                     >
-                      <span>Rp.</span>
-                      <span>{item.unit_price?.toLocaleString("id-ID")}</span>
-                    </div>
-                  </td>
-                  <td style={{ ...tdItem, textAlign: "center" }}>
-                    {item.discount > 0
-                      ? `${String(item.discount).replace(".", ",")}%`
-                      : ""}
-                  </td>
-                  <td
-                    style={{ ...tdItem, whiteSpace: "nowrap", fontWeight: 400 }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
+                      {customer?.company_name}
+                    </td>
+                    <td />
+                    <td style={{ ...tdLabel, verticalAlign: "top" }}>No</td>
+                    <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
+                    <td
+                      style={{ ...tdValue, verticalAlign: "top", fontWeight: 700 }}
                     >
-                      <span>Rp.</span>
-                      <span>{item.total_price?.toLocaleString("id-ID")}</span>
-                    </div>
-                  </td>
-                  <td
-                    style={{ ...tdItem, textAlign: "center" }}
-                    className="whitespace-normal break-words"
-                  >
-                    {item.products?.remark || ""}
-                  </td> 
-                </tr>
-              ))}
-              {/* Baris kosong pengisi agar tabel terlihat penuh */}
-              {Array.from({ length: Math.max(0, 10 - items.length) }).map(
-                (_, i) => (
-                  <tr key={`empty-${i}`}>
-                    {[...Array(9)].map((_, j) => (
-                      <td key={j} style={{ ...tdItem, height: 22 }} />
-                    ))}
+                      {quotation.quotation_number}
+                    </td>
                   </tr>
-                ),
-              )}
-              {/* ── BARIS SUB TOTAL & DISCOUNT (hanya bila ada diskon nominal) ── */}
-              {discountAmount > 0 && (
+                  <tr>
+                    <td style={{ ...tdLabel, verticalAlign: "top" }}>Address</td>
+                    <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
+                    <td
+                      style={{
+                        ...tdValue,
+                        verticalAlign: "top",
+                        whiteSpace: "pre-wrap",
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {address?.complete_address}
+                    </td>
+                    <td />
+                    <td style={{ ...tdLabel, verticalAlign: "top" }}>MR No</td>
+                    <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
+                    <td
+                      style={{ ...tdValue, verticalAlign: "top", fontWeight: 500 }}
+                    >
+                      {quotation.mr_number || "-"}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style={{ ...tdLabel, verticalAlign: "top" }}>Telp</td>
+                    <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
+                    <td style={{ ...tdValue, verticalAlign: "top" }}>
+                      {address?.pic_phone ? `${address.pic_phone}` : ""}
+                    </td>
+                    <td />
+                    <td style={{ ...tdLabel, verticalAlign: "top" }}>Date</td>
+                    <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
+                    <td style={{ ...tdValue, verticalAlign: "top" }}>
+                      {new Date(quotation.created_at)
+                        .toLocaleDateString("id-ID", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })
+                        .replace(/ /g, "-")}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style={{ ...tdLabel, verticalAlign: "top" }}>Email</td>
+                    <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
+                    <td style={{ ...tdValue, verticalAlign: "top" }}>
+                      {customer?.email || ""}
+                    </td>
+                    <td />
+                    <td style={{ ...tdLabel, verticalAlign: "top" }}>Validity</td>
+                    <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
+                    <td style={{ ...tdValue, verticalAlign: "top" }}>
+                      {getValidityDays()} Days
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style={{ ...tdLabel, verticalAlign: "top" }}>Fax</td>
+                    <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
+                    <td style={{ ...tdValue, verticalAlign: "top" }}>
+                      {totalPages > 1 ? `Page ${pageIndex + 1} of ${totalPages}` : ""}
+                    </td>
+                    <td />
+                    <td style={{ ...tdLabel, verticalAlign: "top" }}>Attn</td>
+                    <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
+                    <td style={{ ...tdValue, verticalAlign: "top" }}>
+                      {address?.pic_name || ""}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              {/* ── TABEL BARANG ── */}
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  marginBottom: 14,
+                  tableLayout: "fixed",
+                }}
+              >
+                <colgroup>
+                  <col style={{ width: 30 }} />
+                  <col style={{ width: 95 }} />
+                  <col style={{ width: 150 }} />
+                  <col style={{ width: 32 }} />
+                  <col style={{ width: 32 }} />
+                  <col style={{ width: 93 }} />
+                  <col style={{ width: 35 }} />
+                  <col />
+                  <col style={{ width: 73 }} />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th style={thStyle}>No</th>
+                    <th style={thStyle}>Part Number</th>
+                    <th style={thStyle}>Description</th>
+                    <th style={thStyle} colSpan={2}>
+                      Qty
+                    </th>
+                    <th style={thStyle}>Unit Price</th>
+                    <th style={thStyle}>Disc</th>
+                    <th style={thStyle}>Amount (IDR)</th>
+                    <th style={thStyle}>Remark</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pageItems.map((item, index) => (
+                    <tr key={item.id || `${pageIndex}-${index}`} style={{ pageBreakInside: "avoid" }}>
+                      <td style={{ ...tdItem, textAlign: "center" }}>
+                        {startNo + index + 1}
+                      </td>
+                      <td
+                        style={{ ...tdItem, fontWeight: 400 }}
+                        className="whitespace-normal break-words"
+                      >
+                        {item.products?.part_code}
+                      </td>
+                      <td style={tdItem}>
+                        <div style={{ lineHeight: 1.35 }}>
+                          {item.products?.part_name}
+                        </div>
+                      </td>
+                      <td style={{ ...tdItem, textAlign: "center" }}>{item.qty}</td>
+                      <td style={{ ...tdItem, textAlign: "left" }}>
+                        {item.products?.unit}
+                      </td>
+                      <td style={{ ...tdItem, whiteSpace: "nowrap" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <span>Rp.</span>
+                          <span>{item.unit_price?.toLocaleString("id-ID")}</span>
+                        </div>
+                      </td>
+                      <td style={{ ...tdItem, textAlign: "center" }}>
+                        {item.discount > 0
+                          ? `${String(item.discount).replace(".", ",")}%`
+                          : ""}
+                      </td>
+                      <td
+                        style={{ ...tdItem, whiteSpace: "nowrap", fontWeight: 400 }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <span>Rp.</span>
+                          <span>{item.total_price?.toLocaleString("id-ID")}</span>
+                        </div>
+                      </td>
+                      <td
+                        style={{ ...tdItem, textAlign: "center" }}
+                        className="whitespace-normal break-words"
+                      >
+                        {item.products?.remark || ""}
+                      </td>
+                    </tr>
+                  ))}
+
+                  {/* Baris kosong pengisi agar tabel terlihat proporsional */}
+                  {Array.from({ length: emptyRowsCount }).map((_, i) => (
+                    <tr key={`empty-${pageIndex}-${i}`}>
+                      {[...Array(9)].map((_, j) => (
+                        <td key={j} style={{ ...tdItem, height: 22 }} />
+                      ))}
+                    </tr>
+                  ))}
+
+                  {/* ── SUB TOTAL, DISCOUNT & TOTAL → HANYA DI HALAMAN TERAKHIR ── */}
+                  {isLastPage && (
+                    <>
+                      {discountAmount > 0 && (
+                        <>
+                          <tr style={{ pageBreakInside: "avoid" }}>
+                            <td
+                              colSpan={7}
+                              style={{
+                                ...tdItem,
+                                textAlign: "right",
+                                fontWeight: 700,
+                                border: "none",
+                                borderTop: "1px solid #bbb",
+                              }}
+                            >
+                              Sub Total
+                            </td>
+                            <td
+                              style={{
+                                ...tdItem,
+                                fontWeight: 700,
+                                whiteSpace: "nowrap",
+                                borderTop: "1px solid #bbb",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                }}
+                              >
+                                <span>Rp.</span>
+                                <span>{subTotal.toLocaleString("id-ID")}</span>
+                              </div>
+                            </td>
+                            <td
+                              style={{ border: "none", borderTop: "1px solid #bbb" }}
+                            />
+                          </tr>
+                          <tr style={{ pageBreakInside: "avoid" }}>
+                            <td
+                              colSpan={7}
+                              style={{
+                                ...tdItem,
+                                textAlign: "right",
+                                fontWeight: 700,
+                                border: "none",
+                              }}
+                            >
+                              Discount
+                            </td>
+                            <td
+                              style={{
+                                ...tdItem,
+                                fontWeight: 700,
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                }}
+                              >
+                                <span>Rp.</span>
+                                <span>{discountAmount.toLocaleString("id-ID")}</span>
+                              </div>
+                            </td>
+                            <td style={{ border: "none" }} />
+                          </tr>
+                        </>
+                      )}
+                      <tr style={{ pageBreakInside: "avoid" }}>
+                        <td
+                          colSpan={7}
+                          style={{
+                            ...tdItem,
+                            textAlign: "right",
+                            fontWeight: 700,
+                            border: "none",
+                          }}
+                        >
+                          Total
+                        </td>
+                        <td
+                          style={{ ...tdItem, fontWeight: 700, whiteSpace: "nowrap" }}
+                        >
+                          <div
+                            style={{ display: "flex", justifyContent: "space-between" }}
+                          >
+                            <span>Rp.</span>
+                            <span>
+                              {quotation.grand_total?.toLocaleString("id-ID")}
+                            </span>
+                          </div>
+                        </td>
+                        <td style={{ border: "none" }} />
+                      </tr>
+                    </>
+                  )}
+                </tbody>
+              </table>
+
+              {/* ── CATATAN & TANDA TANGAN → HANYA DI HALAMAN TERAKHIR ── */}
+              {isLastPage && (
                 <>
-                  <tr style={{ pageBreakInside: "avoid" }}>
-                    <td
-                      colSpan={7}
+                  <div style={{ marginBottom: 20, pageBreakInside: "avoid" }}>
+                    <p
                       style={{
-                        ...tdItem,
-                        textAlign: "right",
+                        margin: "0 0 4px",
                         fontWeight: 700,
-                        border: "none",
-                        borderTop: "1px solid #bbb",
+                        textDecoration: "underline",
+                        fontSize: 11,
                       }}
                     >
-                      Sub Total
-                    </td>
-                    <td
+                      NOTE :
+                    </p>
+                    <div
                       style={{
-                        ...tdItem,
-                        fontWeight: 700,
-                        whiteSpace: "nowrap",
-                        borderTop: "1px solid #bbb",
+                        whiteSpace: "pre-wrap",
+                        margin: "0 0 8px",
+                        fontSize: 11,
+                        lineHeight: 1.5,
                       }}
                     >
-                      <div
+                      {quotation.notes ? quotation.notes : "Ready Stock\nFranco Site"}
+                    </div>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontWeight: 700,
+                        color: "#b00000",
+                        fontStyle: "italic",
+                        fontSize: 11,
+                      }}
+                    >
+                      All payment to Bank MANDIRI No. 1560024959530 a.n CV HARMONISINDO
+                      JAYA PART
+                    </p>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      pageBreakInside: "avoid",
+                    }}
+                  >
+                    <div>
+                      <p style={{ margin: 0, fontSize: 11 }}>Quote by,</p>
+                      <div style={{ height: 55 }} />
+                      <p
                         style={{
-                          display: "flex",
-                          justifyContent: "space-between",
+                          margin: 0,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          textTransform: "capitalize",
+                          textDecoration: "underline",
                         }}
                       >
-                        <span>Rp.</span>
-                        <span>{subTotal.toLocaleString("id-ID")}</span>
-                      </div>
-                    </td>
-                    <td
-                      style={{ border: "none", borderTop: "1px solid #bbb" }}
-                    />
-                  </tr>
-                  <tr style={{ pageBreakInside: "avoid" }}>
-                    <td
-                      colSpan={7}
-                      style={{
-                        ...tdItem,
-                        textAlign: "right",
-                        fontWeight: 700,
-                        border: "none",
-                      }}
-                    >
-                      Discount
-                    </td>
-                    <td
-                      style={{
-                        ...tdItem,
-                        fontWeight: 700,
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      <div
+                        Fatin
+                      </p>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <p style={{ margin: 0, fontSize: 11 }}>Approved by,</p>
+                      <div style={{ height: 55 }} />
+                      <p
                         style={{
-                          display: "flex",
-                          justifyContent: "space-between",
+                          margin: 0,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          textTransform: "capitalize",
+                          textDecoration: "underline",
                         }}
                       >
-                        <span>Rp.</span>
-                        <span>{discountAmount.toLocaleString("id-ID")}</span>
-                      </div>
-                    </td>
-                    <td style={{ border: "none" }} />
-                  </tr>
+                        {address?.pic_name || "................................"}
+                      </p>
+                    </div>
+                  </div>
                 </>
               )}
-              {/* ── BARIS TOTAL ── */}
-              <tr style={{ pageBreakInside: "avoid" }}>
-                <td
-                  colSpan={7}
-                  style={{
-                    ...tdItem,
-                    textAlign: "right",
-                    fontWeight: 700,
-                    border: "none",
-                  
-                  }}
-                >
-                  Total
-                </td>
-                <td
-                  style={{ ...tdItem, fontWeight: 700, whiteSpace: "nowrap" }}
-                >
-                  <div
-                    style={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <span>Rp.</span>
-                    <span>
-                      {quotation.grand_total?.toLocaleString("id-ID")}
-                    </span>
-                  </div>
-                </td>
-                <td style={{ border: "none" }} />
-              </tr>
-            </tbody>
-          </table>
-          {/* ── CATATAN ── */}
-          <div style={{ marginBottom: 32, pageBreakInside: "avoid" }}>
-            <p
-              style={{
-                margin: "0 0 4px",
-                fontWeight: 700,
-                textDecoration: "underline",
-                fontSize: 11,
-              }}
-            >
-              NOTE :
-            </p>
-            <div
-              style={{
-                whiteSpace: "pre-wrap",
-                margin: "0 0 10px",
-                fontSize: 11,
-                lineHeight: 1.6,
-              }}
-            >
-              {quotation.notes ? quotation.notes : "Ready Stock\nFranco Site"}
             </div>
-            <p
-              style={{
-                margin: 0,
-                fontWeight: 700,
-                color: "#b00000",
-                fontStyle: "italic",
-                fontSize: 11,
-              }}
-            >
-              All payment to Bank MANDIRI No. 1560024959530 a.n CV HARMONISINDO
-              JAYA PART
-            </p>
-          </div>
-          {/* ── TANDA TANGAN ── */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              pageBreakInside: "avoid",
-            }}
-          >
-            <div>
-              <p style={{ margin: 0, fontSize: 11 }}>Quote by,</p>
-              <div style={{ height: 64 }} />
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  textTransform: "capitalize",
-                  textDecoration: "underline",
-                }}
-              >
-                Fatin
-              </p>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <p style={{ margin: 0, fontSize: 11 }}>Approved by,</p>
-              <div style={{ height: 64 }} />
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  textTransform: "capitalize",
-                  textDecoration: "underline",
-                }}
-              >
-                {address?.pic_name || "................................"}
-              </p>
-            </div>
-          </div>
-        </div>
+          );
+        })}
       </div>
       {/* ── AKHIR WRAPPER PDF ── */}
+
       {/* ── MODAL CONVERT KE SALES ORDER ── */}
       {isPOModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex justify-center p-4 print:hidden items-end sm:items-center sm:p-6 overflow-y-auto">
