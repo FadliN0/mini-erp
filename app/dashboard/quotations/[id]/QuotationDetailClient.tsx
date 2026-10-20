@@ -549,7 +549,7 @@ export default function QuotationDetailClient({
                     <td style={{ ...tdLabel, verticalAlign: "top" }}>Fax</td>
                     <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
                     <td style={{ ...tdValue, verticalAlign: "top" }}>
-                      {totalPages > 1 ? `Page ${pageIndex + 1} of ${totalPages}` : ""}
+                      {""}
                     </td>
                     <td />
                     <td style={{ ...tdLabel, verticalAlign: "top" }}>Attn</td>
