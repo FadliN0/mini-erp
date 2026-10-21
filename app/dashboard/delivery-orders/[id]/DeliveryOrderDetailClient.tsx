@@ -140,8 +140,8 @@ export default function DeliveryOrderDetailClient({
           const startNo = pages
             .slice(0, pageIndex)
             .reduce((acc, p) => acc + p.length, 0);
-          const targetRows = isLastPage ? ROWS_LAST_PAGE : ROWS_FULL_PAGE;
-          const emptyRowsCount = Math.max(0, targetRows - pageItems.length);
+          const MIN_ROWS = 5;
+          const emptyRowsCount = Math.max(0, MIN_ROWS - pageItems.length);
 
           return (
             <div
@@ -421,18 +421,6 @@ export default function DeliveryOrderDetailClient({
                       </tr>
                     );
                   })}
-
-                  {/* Pengisi baris kosong agar proporsional */}
-                  {Array.from({ length: emptyRowsCount }).map((_, i) => (
-                    <tr key={`empty-${pageIndex}-${i}`}>
-                      <td style={{ ...tdItem, height: 26 }}></td>
-                      <td style={tdItem}></td>
-                      <td style={tdItem}></td>
-                      <td style={tdItem}></td>
-                      <td style={tdItem}></td>
-                      <td style={tdItem}></td>
-                    </tr>
-                  ))}
 
                   {/* Total Qty -> Hanya di halaman terakhir */}
                   {isLastPage && (
