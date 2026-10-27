@@ -234,14 +234,7 @@ export default function DeliveryOrderDetailClient({
                     >
                       REF INV: {invoiceNumber.toUpperCase()}
                     </div>
-                  )}
-                  {totalPages > 1 && (
-                    <div
-                      style={{ fontSize: 10, color: "#444", fontWeight: "bold" }}
-                    >
-                      PAGE: {pageIndex + 1} OF {totalPages}
-                    </div>
-                  )}
+                  ) }
                 </div>
               </div>
 
