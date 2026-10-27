@@ -723,10 +723,10 @@ export default function InvoiceDetailClient({
               {/* TANGGAL & TANDA TANGAN → HANYA di halaman terakhir */}
               {isLastPage && (
                 <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16, pageBreakInside: "avoid" }}>
-                  <div style={{ textAlign: "center", minWidth: 150 }}>
+                  <div style={{ textAlign: "center", minWidth: 200 }}>
                     <p style={{ margin: 0, fontSize: baseSize }}>Jakarta, {todayFormatted}</p>
                     <p style={{ margin: 0, fontSize: baseSize }}>Harmonisindo JayaPart</p>
-                    <div style={{ height: 75 }} />
+                    <div style={{ height: 110}} />
                     <p style={{ margin: 0, fontSize: baseSize, fontWeight: 700, textDecoration: "underline" }}>
                       Hana Khamila
                     </p>
