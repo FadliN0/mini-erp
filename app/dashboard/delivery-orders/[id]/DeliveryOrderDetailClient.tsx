@@ -4,8 +4,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 /* ─── Konfigurasi Pagination Pintar ─── */
-const ROWS_FULL_PAGE = 18; // Kapasitas halaman penuh (tanpa Total & TTD)
-const ROWS_LAST_PAGE = 10; // Kapasitas halaman terakhir (berbagi ruang dengan Total & TTD)
+const ROWS_FULL_PAGE = 15; // Kapasitas halaman penuh (tanpa Total & TTD)
+const ROWS_LAST_PAGE = 9; // Kapasitas halaman terakhir (berbagi ruang dengan Total & TTD)
 
 function paginateItems<T>(list: T[]): T[][] {
   if (list.length === 0) return [[]];
