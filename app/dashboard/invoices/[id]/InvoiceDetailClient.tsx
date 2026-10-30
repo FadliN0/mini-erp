@@ -11,6 +11,7 @@ import {
   saveInvoiceEditsAction,
   recordPaymentAction,
   cancelInvoiceAction,
+  updateInvoiceAddressAction,
 } from "./actions";
 
 type InvoiceDetailClientProps = {
@@ -20,6 +21,7 @@ type InvoiceDetailClientProps = {
   billingAddress: any;
   items: any[];
   paymentsHistory: any[];
+  allAddresses: any[];
 };
 
 // Kapasitas baris untuk halaman penuh (tanpa TTD) vs halaman terakhir (dengan Total + TTD)
@@ -61,6 +63,7 @@ export default function InvoiceDetailClient({
   billingAddress,
   items,
   paymentsHistory,
+  allAddresses,
 }: InvoiceDetailClientProps) {
   const router = useRouter();
   const id = invoice.id;
@@ -233,6 +236,27 @@ export default function InvoiceDetailClient({
   };
 
   const handlePrint = () => window.print();
+
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [selectedAddressId, setSelectedAddressId] = useState(invoice?.address_id || "");
+  const [isUpdatingAddress, setIsUpdatingAddress] = useState(false);
+
+  const handleUpdateAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsUpdatingAddress(true);
+    try{
+      const res = await updateInvoiceAddressAction(invoice.id, selectedAddressId);
+      if (res.success){
+        setIsAddressModalOpen(false);
+      } else{
+        alert(`Gagal : ${res.error}`);
+      }
+    }catch (error: any){
+      alert(`Gagal : ${error.message}`);
+    } finally {
+      setIsUpdatingAddress(false);
+    }
+  };  
 
   const fmtDate = (dateStr: string) =>
     new Date(dateStr).toLocaleDateString("en-GB", {
@@ -501,9 +525,21 @@ export default function InvoiceDetailClient({
                   <table style={ { borderCollapse: "collapse", width: "100%" } }>
                     <tbody>
                       <tr>
-                        <td style={ { width: 45, fontWeight: 700, verticalAlign: "top" } }>TO</td>
-                        <td style={ { width: 15, fontWeight: 700, verticalAlign: "top" } }>:</td>
-                        <td style={ { fontWeight: 900, textTransform: "uppercase" } }>{customer?.company_name}</td>
+                        <td style={{ width: 45, fontWeight: 700, verticalAlign: "top" }}>TO</td>
+                        <td style={{ width: 15, fontWeight: 700, verticalAlign: "top" }}>:</td>
+                        <td style={{ fontWeight: 900, textTransform: "uppercase", verticalAlign: "top" }}>
+                          {/* Bungkus nama perusahaan dan tombol dalam flexbox agar sejajar kiri-kanan */}
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px" }}>
+                            <span>{customer?.company_name}</span>
+                            <button
+                              type="button"
+                              onClick={() => setIsAddressModalOpen(true)}
+                              className="print:hidden text-[9px] bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-0.5 rounded font-bold border border-blue-300 whitespace-nowrap"
+                            >
+                              ✎ Ubah Alamat
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                       <tr>
                         <td></td>
@@ -862,6 +898,55 @@ export default function InvoiceDetailClient({
           </form>
         </div>
       )}
+
+      {/* ── MODAL UBAH ALAMAT (Memakai Reusable Component) ── */}
+      <Modal 
+        isOpen={isAddressModalOpen} 
+        onClose={() => setIsAddressModalOpen(false)}
+        title="Ubah Alamat Tagihan (PIC)"
+      >
+        <form onSubmit={handleUpdateAddress} className="flex flex-col gap-4 p-2">
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-2">
+              Pilih Alamat & Kontak:
+            </label>
+            <select
+              value={selectedAddressId}
+              onChange={(e) => setSelectedAddressId(e.target.value)}
+              className="input-modern w-full"
+            >
+              {allAddresses.map((addr) => (
+                <option key={addr.id} value={addr.id}>
+                  {addr.address_type} - {addr.pic_name} ({addr.pic_phone})
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          {/* Preview Alamat Lengkap */}
+          <div className="p-3 bg-slate-50 border rounded text-xs text-slate-600">
+            <span className="font-bold">Alamat Lengkap:</span><br/>
+            {allAddresses.find(a => a.id === selectedAddressId)?.complete_address}
+          </div>
+
+          <div className="flex justify-end gap-3 mt-4 pt-4 border-t">
+            <button
+              type="button"
+              onClick={() => setIsAddressModalOpen(false)}
+              className="btn-secondary"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              disabled={isUpdatingAddress}
+              className="btn-icon-mobile inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white sm:py-2 px-4 rounded-xl font-bold text-sm transition-colors disabled:opacity-50"
+            >
+              {isUpdatingAddress ? "Menyimpan..." : "Simpan Alamat"}
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* ── MODAL UBAH DISKON (pakai komponen Modal) ── */}
       <Modal

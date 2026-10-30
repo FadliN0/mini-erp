@@ -212,3 +212,24 @@ export async function cancelInvoiceAction(
     return { success: false, error: error.message };
   }
 }
+
+export async function updateInvoiceAddressAction(
+  invoiceID: string,
+  newAddressID: string
+){
+  try{
+    const supabase = await createClient();
+    //Update address_id di table invoices
+    const{error} = await supabase
+    .from('invoices')
+    .update({address_id: newAddressID})
+    .eq('id', invoiceID); 
+
+    if(error) throw new Error(error.message);
+    revalidateInvoiceRelatedPaths(invoiceID);
+    return {success: true};
+  } catch (error: any) {
+    console.error("Gagal update alamat invoice:", error);
+    return {success: false, error: error.message};
+  }
+}

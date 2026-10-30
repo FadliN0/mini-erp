@@ -12,6 +12,7 @@ export default async function InvoiceDetailPage({
 }) {
   const supabase = await createClient();
   const { id } = await params;
+  
 
   // 1. Ambil Invoice sekaligus relasi SO, Customer, dan Address dalam 1 langkah
   const { data: invoice } = await supabase
@@ -27,7 +28,7 @@ export default async function InvoiceDetailPage({
 
   if (!invoice) notFound();
 
-  // 2. Ambil History Pembayaran dan Item Invoice secara paralel
+    // 2. Ambil History Pembayaran dan Item Invoice secara paralel
   const [{ data: paymentsHistory }, { data: invItemsData }] = await Promise.all([
     supabase
       .from('payments')
@@ -53,6 +54,12 @@ export default async function InvoiceDetailPage({
       `)
       .eq('invoice_id', id),
   ]);
+
+  const { data: allAddresses } = await supabase
+    .from('customer_addresses')
+    .select('id, address_type, complete_address, pic_name, pic_phone')
+    .eq('customer_id', invoice.customer_id)
+    .order('created_at', { ascending: false });
 
   // 3. Mapping item berbasis invoice_items (tetap mempertahankan struktur prop untuk UI)
   const items = (invItemsData || []).map((invItem: any) => {
@@ -87,6 +94,7 @@ export default async function InvoiceDetailPage({
       billingAddress={billingAddress}
       items={items}
       paymentsHistory={paymentsHistory || []}
+      allAddresses={allAddresses || []}
     />
   );
 }
