@@ -93,8 +93,10 @@ export default function InvoiceDetailClient({
   const router = useRouter();
   const id = invoice.id;
 
+  // ... state lainnya seperti printMode, isPaymentModalOpen, dll
+  const [francoTerm, setFrancoTerm] = useState("Franco Jakarta"); // Default kita ubah ke permintaan cust saat ini
 
-  const [userRole, setUserRole] = useState<string | null>(null);
+   const [userRole, setUserRole] = useState<string | null>(null);
   useEffect(() => {
     const fetchRole = async () => {
       const {
@@ -375,6 +377,20 @@ export default function InvoiceDetailClient({
               <option value="both">📑 Cetak Semua</option>
             </select>
 
+             {/* SAKLAR FRANCO (Khusus Admin untuk ganti teks sebelum cetak) */}
+            {userRole === "admin" && (
+              <select
+                value={francoTerm}
+                onChange={(e) => setFrancoTerm(e.target.value)}
+                title="Ubah teks Franco di Invoice"
+                className="h-10 sm:h-[42px] bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold rounded-xl px-2 outline-none focus:border-amber-500 cursor-pointer shadow-sm shrink-0"
+              >
+                <option value="Franco Site">Franco Site</option>
+                <option value="Franco Jakarta">Franco Jakarta</option>
+                <option value="Franco GTS">Franco GTS</option>
+              </select>
+            )}
+
             {canPrint && (
               <button
                 onClick={handlePrint}
@@ -488,7 +504,7 @@ export default function InvoiceDetailClient({
               >
                 {/* Pastikan src="/logo.png" sesuai dengan path logo di Kop Invoice Anda */}
                 <img
-                  src="/logo.png"
+                  src="/logo1.png"
                   alt="Watermark HJP"
                   style={{
                     width: "550px",
@@ -525,7 +541,7 @@ export default function InvoiceDetailClient({
                     </p>
                   </div>
                   <img
-                    src="/logo.png"
+                    src="/logo1.png"
                     alt="Logo HJP"
                     style={{ width: "150px", height: "auto", objectFit: "contain" }}
                   />
@@ -798,7 +814,7 @@ export default function InvoiceDetailClient({
                         <tr>
                           <td>Delivery Terms</td>
                           <td>:</td>
-                          <td>Franco Site</td>
+                          <td>{francoTerm}</td>
                         </tr>
                       </tbody>
                     </table>
