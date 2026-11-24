@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabaseServer';
+import { requireAdmin } from '@/lib/auth-guards';
 import { revalidatePath } from 'next/cache';
 
 type ActionResult = { success: boolean; error?: string };
@@ -11,6 +12,7 @@ export async function updateQuotationStatusAction(
 ): Promise<ActionResult> {
   const supabase = await createClient();
   try {
+    await requireAdmin();
     const { error } = await supabase
       .from('quotations')
       .update({ status: newStatus })
@@ -37,6 +39,7 @@ export async function generateSalesOrderAction(
 ): Promise<{ success: boolean; data?: any; error?: string }> {
   const supabase = await createClient();
   try {
+    await requireAdmin();
     const { data, error } = await supabase.rpc('generate_sales_order', {
       p_quotation_id: payload.quotationId,
       p_po_number: payload.poNumber,

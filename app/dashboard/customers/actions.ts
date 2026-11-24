@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabaseServer';
+import { requireAdmin } from '@/lib/auth-guards';
 import { revalidatePath } from 'next/cache';
 
 // ─── TAMBAH PELANGGAN BARU ────────────────────────────────────────────────────
@@ -18,6 +19,7 @@ export async function addCustomer(formData: {
     is_default: boolean;
   }[];
 }) {
+  await requireAdmin();
   const supabase = await createClient();
 
   const { data: newCustomer, error: custError } = await supabase
@@ -68,6 +70,7 @@ export async function updateCustomer(formData: {
     is_default: boolean;
   }[];
 }) {
+  await requireAdmin();
   const supabase = await createClient();
 
   const { error: custError } = await supabase
@@ -140,6 +143,7 @@ export async function updateCustomer(formData: {
 
 // ─── HAPUS PELANGGAN ──────────────────────────────────────────────────────────
 export async function deleteCustomer(customerId: string) {
+  await requireAdmin();
   const supabase = await createClient();
 
   // Hapus alamat dulu (kalau belum ada CASCADE di DB)

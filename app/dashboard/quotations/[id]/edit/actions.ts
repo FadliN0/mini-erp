@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabaseServer';
+import { requireAdmin } from '@/lib/auth-guards';
 import { revalidatePath } from 'next/cache';
 
 type ActionResult = { success: boolean; error?: string };
@@ -21,6 +22,7 @@ export async function updateQuotationAction(
 ): Promise<ActionResult> {
   const supabase = await createClient();
   try {
+    await requireAdmin();
     const { error: qErr } = await supabase
       .from('quotations')
       .update({

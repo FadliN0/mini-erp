@@ -1,10 +1,10 @@
 'use server'
 import { createAdminClient } from '@/lib/supabaseAdmin'
-import { assertCanManageUsers } from '@/lib/auth-guards'
+import { requireAtasan } from '@/lib/auth-guards'
 
 export async function getUsers() {
   try {
-    await assertCanManageUsers()                 // 🛡️ gerbang
+    await requireAtasan()                 // 🛡️ gerbang
     const supabaseAdmin = createAdminClient()     // 🧹 helper (bukan inline)
     const { data, error } = await supabaseAdmin
       .from('profiles')
@@ -19,7 +19,7 @@ export async function getUsers() {
 
 export async function updateUserPassword(userId: string, newPassword: string) {
   try {
-    await assertCanManageUsers()                 // 🛡️ gerbang (WAJIB!)
+    await requireAtasan()                 // 🛡️ gerbang (WAJIB!)
     if (newPassword.length < 6) throw new Error('Password minimal 6 karakter')
     const supabaseAdmin = createAdminClient()
     const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {

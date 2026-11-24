@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabaseServer';
+import { requireAdmin } from '@/lib/auth-guards';
 import { revalidatePath } from 'next/cache';
 
 type ActionResult = { success: boolean; error?: string };
@@ -18,6 +19,7 @@ export async function bulkCreateProductsAction(
 ): Promise<ActionResult> {
   const supabase = await createClient();
   try {
+    await requireAdmin();
     const { error } = await supabase.from('products').insert(payload);
     if (error) {
       if (error.code === '23505') {
