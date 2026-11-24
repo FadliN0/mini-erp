@@ -2,8 +2,24 @@
 
 import { createClient } from '@/lib/supabaseServer';
 import { requireUser } from '@/lib/auth-guards';
+import { getErrorMessage } from "@/lib/errors";
+import type { Tables } from "@/lib/database.types";
 
-type ReportResult = { success: boolean; data?: any[]; error?: string };
+type ReportResult<T> = { success: boolean; data?: T[]; error?: string };
+
+// Baris hasil query riwayat barang (sales_order_items + relasi inner join)
+export type ProductHistoryRow = Pick<
+  Tables<"sales_order_items">,
+  "qty" | "unit_price" | "total_price"
+> & {
+  products: Pick<Tables<"products">, "part_code" | "part_name" | "unit">;
+  sales_orders: Pick<
+    Tables<"sales_orders">,
+    "so_number" | "created_at" | "customer_id"
+  > & {
+    customers: Pick<Tables<"customers">, "company_name"> | null;
+  };
+};
 
 type TransactionsFilter = {
   startDate: string;
@@ -14,7 +30,7 @@ type TransactionsFilter = {
 // Tarik laporan transaksi keuangan (Laporan Transaksi / SO)
 export async function fetchTransactionsReportAction(
   filter: TransactionsFilter,
-): Promise<ReportResult> {
+): Promise<ReportResult<Tables<"view_finance_reports">>> {
   const supabase = await createClient();
   try {
     await requireUser();
@@ -30,8 +46,8 @@ export async function fetchTransactionsReportAction(
     const { data, error } = await query;
     if (error) throw error;
     return { success: true, data: data || [] };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
   }
 }
 
@@ -43,7 +59,7 @@ type ProductHistoryFilter = {
 // Tarik riwayat penjualan barang (Riwayat Barang)
 export async function fetchProductHistoryAction(
   filter: ProductHistoryFilter,
-): Promise<ReportResult> {
+): Promise<ReportResult<ProductHistoryRow>> {
   const supabase = await createClient();
   try {
     await requireUser();
@@ -66,7 +82,7 @@ export async function fetchProductHistoryAction(
     const { data, error } = await query;
     if (error) throw error;
     return { success: true, data: data || [] };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
   }
 }

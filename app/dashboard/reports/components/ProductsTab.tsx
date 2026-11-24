@@ -2,11 +2,14 @@
 
 import React, { useState } from 'react';
 import { fetchProductHistoryAction } from '../actions';
+import { getErrorMessage } from "@/lib/errors";
+import type { Tables } from "@/lib/database.types";
+import type { ProductHistoryRow } from "../actions";
+import { fmtRp } from "@/lib/format";
 
 // --- Utility Functions Khusus Tab Barang ---
-const fmtRp = (num: number) => `Rp ${Number(num || 0).toLocaleString('id-ID')}`;
 
-const downloadBlob = (headers: string[], rows: any[][], filename: string) => {
+const downloadBlob = (headers: string[], rows: (string | number)[][], filename: string) => {
   const csvContent = [headers.join(','), ...rows.map((e) => e.join(','))].join(
     '\n',
   );
@@ -21,12 +24,12 @@ const downloadBlob = (headers: string[], rows: any[][], filename: string) => {
 export default function ProductsTab({
   customersList,
 }: {
-  customersList: any[];
+  customersList: Pick<Tables<"customers">, "id" | "company_name">[];
 }) {
   const [productSearch, setProductSearch] = useState('');
   const [selectedProductCustomerId, setSelectedProductCustomerId] =
     useState('');
-  const [productHistory, setProductHistory] = useState<any[]>([]);
+  const [productHistory, setProductHistory] = useState<ProductHistoryRow[]>([]);
   const [productLoading, setProductLoading] = useState(false);
   const [hasSearchedProduct, setHasSearchedProduct] = useState(false);
 
@@ -46,13 +49,13 @@ export default function ProductsTab({
       if (!res.success) throw new Error(res.error);
 
       const sortedData = (res.data || []).sort(
-        (a: any, b: any) =>
-          new Date(b.sales_orders?.created_at).getTime() -
-          new Date(a.sales_orders?.created_at).getTime(),
+        (a, b) =>
+          new Date(b.sales_orders?.created_at || '').getTime() -
+          new Date(a.sales_orders?.created_at || '').getTime(),
       );
       setProductHistory(sortedData);
-    } catch (error: any) {
-      alert(`Gagal menarik riwayat barang: ${error.message}`);
+    } catch (error) {
+      alert(`Gagal menarik riwayat barang: ${getErrorMessage(error)}`);
     } finally {
       setProductLoading(false);
     }
@@ -71,13 +74,13 @@ export default function ProductsTab({
       'Total Harga',
     ];
     const rows = productHistory.map((item) => [
-      new Date(item.sales_orders?.created_at).toLocaleDateString('id-ID'),
+      new Date(item.sales_orders?.created_at || '').toLocaleDateString('id-ID'),
       `"${item.sales_orders?.customers?.company_name || '-'}"`,
-      item.sales_orders?.so_number,
-      `"${item.products?.part_code}"`,
-      `"${item.products?.part_name}"`,
+      item.sales_orders?.so_number ?? '',
+      `"${item.products.part_code}"`,
+      `"${item.products.part_name}"`,
       item.qty,
-      item.products?.unit,
+      item.products.unit,
       item.unit_price,
       item.total_price,
     ]);
@@ -172,7 +175,7 @@ export default function ProductsTab({
                     >
                       <td className="p-4 font-medium text-slate-600">
                         {new Date(
-                          item.sales_orders?.created_at,
+                          item.sales_orders?.created_at || '',
                         ).toLocaleDateString('id-ID')}
                       </td>
                       <td className="p-4 font-black text-slate-900 uppercase">

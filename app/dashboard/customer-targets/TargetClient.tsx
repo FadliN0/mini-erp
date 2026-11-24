@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCustomerHistoryAction, saveCompanyTargetAction, saveCustomerTargetAction } from './actions';
+import { getErrorMessage } from "@/lib/errors";
+import { fmtRp, fmtRpCompact } from "@/lib/format";
 
 // ─── ICONS ────────────────────────────────────────────────────────────────────
 // const IconTarget = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>;
@@ -11,12 +13,6 @@ const IconTrend = () => <svg className="w-3.5 h-3.5" fill="none" stroke="current
 const IconSave = () => <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>;
 
 // ─── FORMATTERS ───────────────────────────────────────────────────────────────
-const fmtRp = (num: number) => {
-  if (num >= 1_000_000_000) return `Rp ${(num / 1_000_000_000).toFixed(1)}M`;
-  if (num >= 1_000_000) return `Rp ${(num / 1_000_000).toFixed(1)} Jt`;
-  return `Rp ${Number(num).toLocaleString('id-ID')}`;
-};
-const fmtFull = (num: number) => `Rp ${Number(num).toLocaleString('id-ID')}`;
 
 // ─── STATUS BADGE ─────────────────────────────────────────────────────────────
 const StatusBadge = ({ pct }: { pct: number }) => {
@@ -43,7 +39,7 @@ const ProgressBar = ({ pct }: { pct: number }) => {
 };
 
 // ─── CUSTOMER TARGET INPUT ─────────────────────────────
-function CustTargetInput({ item, month, year, saving, onSave }: { item: any; month: number; year: number; saving: boolean; onSave: (id: string, val: string) => void; }) {
+function CustTargetInput({ item, month, year, saving, onSave }: { item: CustomerTargetRow; month: number; year: number; saving: boolean; onSave: (id: string, val: string) => void; }) {
   const [val, setVal] = React.useState(item.target > 0 ? String(item.target) : '');
   const [dirty, setDirty] = React.useState(false);
 
@@ -71,12 +67,32 @@ function CustTargetInput({ item, month, year, saving, onSave }: { item: any; mon
   );
 }
 
+// Baris data dari server (per pelanggan, satu bulan target)
+type CustomerTargetData = {
+  customer_id: string;
+  company_name: string;
+  target_amount: number;
+  target_id: string | undefined;
+  achieved_amount: number;
+  achievement_percentage: number;
+};
+
+// Bentuk matang untuk UI setelah diterjemahkan dari CustomerTargetData
+type CustomerTargetRow = {
+  id: string;
+  name: string;
+  target: number;
+  target_id: string | undefined;
+  actual: number;
+  percent: number;
+};
+
 // ─── PROPS DARI SERVER ────────────────────────────────────────────────────────
 interface Props {
   initialMonth: number;
   initialYear: number;
   initialCompanyTarget: number;
-  initialCustomerData: any[];
+  initialCustomerData: CustomerTargetData[];
 }
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
@@ -99,7 +115,7 @@ export default function TargetManagementClient({
   }, [initialCompanyTarget]);
 
   const [expandedCustId, setExpandedCustId] = useState<string | null>(null);
-  const [historyData, setHistoryData] = useState<any[]>([]);
+  const [historyData, setHistoryData] = useState<{ label: string; value: number }[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
   const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -132,7 +148,7 @@ export default function TargetManagementClient({
   const onTrack = customerData.filter(c => c.percent >= 75 && c.percent < 100).length;
   const lagging = customerData.filter(c => c.percent < 75).length;
 
-  const handleExpandRow = async (cust: any) => {
+  const handleExpandRow = async (cust: CustomerTargetRow) => {
     if (expandedCustId === cust.id) { setExpandedCustId(null); return; }
     setExpandedCustId(cust.id);
     setHistoryLoading(true);
@@ -167,8 +183,8 @@ export default function TargetManagementClient({
       // ─────────────────────────────────────────────────────────────────
       await saveCompanyTargetAction(initialMonth, initialYear, num);
       showSuccess('Company target berhasil disimpan ✓');
-    } catch (err: any) { 
-      showError(`Error: ${err?.message}`); 
+    } catch (err) { 
+      showError(`Error: ${getErrorMessage(err)}`); 
     } finally { 
       setSaving(false); 
     }
@@ -184,8 +200,8 @@ export default function TargetManagementClient({
       // ─────────────────────────────────────────────────────────────────
       await saveCustomerTargetAction(custId, initialMonth, initialYear, num);
       showSuccess('Target klien berhasil disimpan ✓');
-    } catch (err: any) { 
-      showError(`Error: ${err?.message}`); 
+    } catch (err) { 
+      showError(`Error: ${getErrorMessage(err)}`); 
     } finally { 
       setSaving(false); 
     }
@@ -237,15 +253,15 @@ export default function TargetManagementClient({
             
             <div className="bg-white border border-slate-200 rounded-xl p-5">
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-2">Company Target</p>
-              <p className="text-2xl font-extrabold text-slate-900 leading-none">{fmtRp(initialCompanyTarget)}</p>
+              <p className="text-2xl font-extrabold text-slate-900 leading-none">{fmtRpCompact(initialCompanyTarget)}</p>
               <p className="text-[11px] text-slate-400 mt-1.5 font-medium">Target ditetapkan untuk periode ini</p>
             </div>
 
             <div className="bg-white border border-slate-200 rounded-xl p-5 border-t-4 border-t-blue-500">
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-2">Actual Revenue</p>
-              <p className="text-2xl font-extrabold text-blue-700 leading-none">{fmtRp(companyActual)}</p>
+              <p className="text-2xl font-extrabold text-blue-700 leading-none">{fmtRpCompact(companyActual)}</p>
               <p className="text-[11px] text-slate-400 mt-1.5 font-medium">
-                {gap > 0 ? `Gap: ${fmtRp(gap)} belum terpenuhi` : <span className="text-emerald-500 font-bold">Target terlampaui ✓</span>}
+                {gap > 0 ? `Gap: ${fmtRpCompact(gap)} belum terpenuhi` : <span className="text-emerald-500 font-bold">Target terlampaui ✓</span>}
               </p>
             </div>
 
@@ -279,8 +295,8 @@ export default function TargetManagementClient({
               </div>
               <div>
                 <div className="flex justify-between text-[11px] text-slate-400 font-semibold mb-1.5">
-                  <span>{fmtRp(companyActual)} realized</span>
-                  <span>Target: {fmtRp(initialCompanyTarget)}</span>
+                  <span>{fmtRpCompact(companyActual)} realized</span>
+                  <span>Target: {fmtRpCompact(initialCompanyTarget)}</span>
                 </div>
                 <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
                   <div className={`h-full rounded-full transition-all duration-1000 ease-out ${compPercent >= 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-blue-500 to-blue-400'}`} style={{ width: `${Math.min(compPercent, 100)}%` }} />
@@ -343,7 +359,7 @@ export default function TargetManagementClient({
                       <div className="p-3" onClick={e => e.stopPropagation()}>
                         <CustTargetInput item={item} month={initialMonth} year={initialYear} saving={saving} onSave={saveCustTarget} />
                       </div>
-                      <div className="p-3 text-[13px] font-bold text-slate-800 text-right tabular-nums">{fmtRp(item.actual)}</div>
+                      <div className="p-3 text-[13px] font-bold text-slate-800 text-right tabular-nums">{fmtRpCompact(item.actual)}</div>
                       <div className="p-3 pr-4"><ProgressBar pct={item.percent} /></div>
                       <div className="p-3 text-center"><StatusBadge pct={item.percent} /></div>
                     </div>
@@ -358,7 +374,7 @@ export default function TargetManagementClient({
                             <div className="flex flex-col gap-2">
                               <div className="bg-white border border-slate-200 rounded-lg py-2.5 px-3.5 shadow-sm">
                                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Period Actual</div>
-                                <div className="text-base font-extrabold text-blue-700">{fmtFull(item.actual)}</div>
+                                <div className="text-base font-extrabold text-blue-700">{fmtRp(item.actual)}</div>
                               </div>
                               <div className="bg-white border border-slate-200 rounded-lg py-2.5 px-3.5 shadow-sm">
                                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Achievement</div>
@@ -378,7 +394,7 @@ export default function TargetManagementClient({
                                   const isLast = i === historyData.length - 1;
                                   return (
                                     <div key={i} className="flex-1 flex flex-col items-center justify-end h-full gap-0 relative group">
-                                      {h.value > 0 && <div className="text-[9px] font-bold text-slate-400 mb-1 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity absolute -top-4">{fmtRp(h.value)}</div>}
+                                      {h.value > 0 && <div className="text-[9px] font-bold text-slate-400 mb-1 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity absolute -top-4">{fmtRpCompact(h.value)}</div>}
                                       <div className={`w-full rounded-t-sm transition-all duration-700 ease-out ${isLast ? 'bg-blue-700' : 'bg-blue-200 group-hover:bg-blue-300'}`} style={{ height: `${heightPct}%`, minHeight: h.value > 0 ? '4px' : '0px' }} />
                                       <div className={`text-[10px] font-bold mt-1 tracking-wide ${isLast ? 'text-blue-700' : 'text-slate-400'}`}>{h.label}</div>
                                     </div>

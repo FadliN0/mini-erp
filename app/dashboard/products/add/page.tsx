@@ -8,7 +8,7 @@ export default async function AddProductPage() {
 
   const { data } = await supabase.from('products').select('part_code');
 
-  const existingCodes = (data || []).map((p: any) =>
+  const existingCodes = (data || []).map((p) =>
     p.part_code.toUpperCase().trim(),
   );
 

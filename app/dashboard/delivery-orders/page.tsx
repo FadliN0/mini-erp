@@ -24,7 +24,7 @@ export default async function DeliveryOrderListPage() {
 
   // OFFLOADING COMPUTATION: deteksi Partial/Completed di server
   // OFFLOADING COMPUTATION: deteksi Partial/Completed di server
-  const initialOrders = (data || []).map((doItem: any) => {
+  const initialOrders = (data || []).map((doItem) => {
     const soItems = doItem.sales_orders?.sales_order_items || [];
     const doItems = doItem.delivery_order_items || [];
 
@@ -44,7 +44,7 @@ export default async function DeliveryOrderListPage() {
       if (delivered < Number(si.qty || 0)) { isPartial = true; break; }
     }
 
-    return { ...doItem, calculatedStatus: isPartial ? 'Partial' : 'Completed' };
+    return { ...doItem, calculatedStatus: (isPartial ? 'Partial' : 'Completed') as 'Partial' | 'Completed' };
   });
 
   return <DeliveryOrderListClient initialOrders={initialOrders} />;

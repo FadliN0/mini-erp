@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AlertBanner } from "@/components/ui/Alert";
 import { bulkCreateProductsAction } from "./actions";
+import { getErrorMessage } from "@/lib/errors";
 
 interface ProductForm {
   tempId: number;
@@ -120,8 +121,8 @@ export default function AddProductClient({
       alert(`Berhasil menyimpan ${validForms.length} produk baru!`);
       router.push("/dashboard/products");
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || "Gagal menyimpan data produk.");
+    } catch (err) {
+      setError(getErrorMessage(err) || "Gagal menyimpan data produk.");
     } finally {
       setIsLoading(false);
     }

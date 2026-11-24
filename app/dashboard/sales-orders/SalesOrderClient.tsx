@@ -4,8 +4,18 @@ import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { deleteSalesOrderAction } from './actions';
 import { useToast } from '@/components/ui/Alert';
+import { getErrorMessage } from "@/lib/errors";
+import type { Tables } from "@/lib/database.types";
+import { fmtRp } from "@/lib/format";
+import { SalesOrderStatusBadge } from "@/components/ui/status-badges";
 
-export default function SalesOrderClient({ salesOrders }: { salesOrders: any[] }) {
+type SalesOrderListRow = Tables<"sales_orders"> & {
+  customers: Pick<Tables<"customers">, "company_name"> | null;
+  invoices: Pick<Tables<"invoices">, "id" | "status" | "canceled_at">[];
+  hasInvoice: boolean;
+};
+
+export default function SalesOrderClient({ salesOrders }: { salesOrders: SalesOrderListRow[] }) {
   const [search, setSearch] = useState('');
   const [isPending, startTransition] = useTransition();
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -21,8 +31,8 @@ export default function SalesOrderClient({ salesOrders }: { salesOrders: any[] }
     startTransition(async () => {
       try {
         await deleteSalesOrderAction(id);
-      } catch (err: any) {
-        toast.error(`Gagal menghapus: ${err.message}`, "Error");
+      } catch (err) {
+        toast.error(`Gagal menghapus: ${getErrorMessage(err)}`, "Error");
       } finally {
         setDeletingId(null);
       }
@@ -37,39 +47,6 @@ export default function SalesOrderClient({ salesOrders }: { salesOrders: any[] }
         so.customers.company_name.toLowerCase().includes(search.toLowerCase()))
   );
 
-  const StatusBadge = ({ status, hasInvoice }: { status: string; hasInvoice: boolean }) => {
-    const base =
-      "px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider inline-block border";
-
-    if (status === 'Cancelled')
-      return <span className="badge-danger">Batal</span>;
-
-    // Tentukan level pengiriman
-    const delivery =
-      status === 'Completed' ? 'full'
-      : status === 'Partial' ? 'partial'
-      : 'none';
-
-    // === SUDAH ada invoice ===
-    if (hasInvoice) {
-      if (delivery === 'full')
-        return <span className={`${base} bg-purple-100 text-purple-700 border-purple-200`}>Terkirim &amp; Ditagih</span>;
-      if (delivery === 'partial')
-        return <span className={`${base} bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200`}>Parsial &amp; Ditagih</span>;
-      // belum kirim tapi sudah ditagih
-      return <span className={`${base} bg-indigo-100 text-indigo-700 border-indigo-200`}>Ditagih</span>;
-    }
-
-    // === BELUM ada invoice ===
-    if (delivery === 'full')
-      return <span className={`${base} bg-teal-100 text-teal-700 border-teal-200`}>Terkirim</span>;
-    if (delivery === 'partial')
-      return <span className={`${base} bg-blue-100 text-blue-700 border-blue-200`}>Parsial</span>;
-    // belum apa-apa
-    return <span className="badge-neutral">Open</span>;
-  };
-
-  const fmtRp = (num: number) => `Rp ${Number(num).toLocaleString('id-ID')}`;
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto pb-10 animate-in fade-in duration-500">
@@ -130,7 +107,7 @@ export default function SalesOrderClient({ salesOrders }: { salesOrders: any[] }
                       </div>
                     </td>
                     <td className="p-4 text-sm font-bold text-slate-800">
-                      {new Date(so.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      {new Date(so.created_at || new Date()).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </td>
                     <td className="p-4 text-sm font-black text-slate-800 uppercase">
                       {so.customers?.company_name || <span className="text-rose-400 italic">Klien Terhapus</span>}
@@ -139,7 +116,7 @@ export default function SalesOrderClient({ salesOrders }: { salesOrders: any[] }
                       {fmtRp(so.grand_total || 0)}
                     </td>
                     <td className="p-4 text-center">
-                      <StatusBadge status={so.status} hasInvoice={so.hasInvoice} />
+                      <SalesOrderStatusBadge status={so.status} hasInvoice={so.hasInvoice} />
                     </td>
                     <td className="p-4 text-center">
                       <div className="flex items-center justify-center gap-3">
@@ -174,10 +151,10 @@ export default function SalesOrderClient({ salesOrders }: { salesOrders: any[] }
                   <div>
                     <div className="font-mono text-sm font-bold text-emerald-700">{so.so_number}</div>
                     <div className="text-xs font-medium text-slate-500 mt-0.5">
-                      {new Date(so.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      {new Date(so.created_at || new Date()).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </div>
                   </div>
-                  <StatusBadge status={so.status} hasInvoice={so.hasInvoice} />
+                  <SalesOrderStatusBadge status={so.status} hasInvoice={so.hasInvoice} />
                 </div>
                 <div>
                   <h3 className="text-sm font-black text-slate-800 uppercase mb-1">

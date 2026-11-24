@@ -7,13 +7,16 @@ import { useRouter } from 'next/navigation';
 import SmartPasteProduct from './SmartPasteProduct';
 import Link from 'next/link';
 import Modal from '@/components/ui/Modal';
+import { getErrorMessage } from "@/lib/errors";
 import {
   createProductAction,
   updateProductAction,
   deleteProductAction,
 } from './actions';
+import type { Tables } from "@/lib/database.types";
+import { fmtRp } from "@/lib/format";
 
-type ProductClientProps = { initialProducts: any[] };
+type ProductClientProps = { initialProducts: Tables<"products">[] };
 
 export default function ProductClient({ initialProducts }: ProductClientProps) {
   const router = useRouter();
@@ -60,7 +63,7 @@ export default function ProductClient({ initialProducts }: ProductClientProps) {
       p.part_name?.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const openModal = (mode: 'add' | 'edit', product: any = null) => {
+  const openModal = (mode: 'add' | 'edit', product: Tables<"products"> | null = null) => {
     setModalMode(mode);
     if (mode === 'edit' && product) {
       setFormData({
@@ -106,8 +109,8 @@ export default function ProductClient({ initialProducts }: ProductClientProps) {
       setIsModalOpen(false);
       toast.success('Produk berhasil disimpan!', 'Sukses');
       router.refresh();
-    } catch (error: any) {
-      toast.error(`Gagal menyimpan: ${error.message}`, 'Error');
+    } catch (error) {
+      toast.error(`Gagal menyimpan: ${getErrorMessage(error)}`, 'Error');
     } finally {
       setIsSaving(false);
     }
@@ -129,8 +132,6 @@ export default function ProductClient({ initialProducts }: ProductClientProps) {
     toast.info(`Produk ${part_name} telah dihapus.`)
     router.refresh();
   };
-
-  const fmtRp = (num: number) => `Rp ${num.toLocaleString('id-ID')}`;
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto pb-10">

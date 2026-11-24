@@ -3,6 +3,7 @@
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
+import { fmtRp } from "@/lib/format";
 
 interface ChartDataItem {
   bulan: string;
@@ -12,15 +13,25 @@ interface ChartDataItem {
 interface Props {
   data: ChartDataItem[];
 }
-
-const fmtRp = (num: number) => `Rp ${Number(num).toLocaleString('id-ID')}`;
 const fmtRpShort = (num: number) => {
   if (num >= 1_000_000) return `Rp ${(num / 1_000_000).toFixed(0)}jt`;
   if (num >= 1_000) return `Rp ${(num / 1_000).toFixed(0)}rb`;
   return `Rp ${num}`;
 };
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+type TooltipProps = {
+  active?: boolean;
+  payload?: Array<{ value: number }>;
+  label?: string;
+};
+
+type DotRenderProps = {
+  cx?: number;
+  cy?: number;
+  payload: ChartDataItem;
+};
+
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white border border-gray-100 shadow-lg rounded-xl px-4 py-3 text-sm">
@@ -79,7 +90,7 @@ export default function SalesTrendChart({ data }: Props) {
             stroke="#3b82f6"
             strokeWidth={2.5}
             fill="url(#gradBlue)"
-            dot={(props: any) => {
+            dot={(props: DotRenderProps) => {
               const { cx, cy, payload } = props;
               return payload.total > 0
                 ? <circle key={`dot-${cx}`} cx={cx} cy={cy} r={5} fill="#3b82f6" stroke="#fff" strokeWidth={2} />

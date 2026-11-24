@@ -1,11 +1,25 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import type { Tables } from "@/lib/database.types";
+import { DeliveryStatusBadge } from "@/components/ui/status-badges";
+
+type DeliveryOrderListRow = Tables<"delivery_orders"> & {
+  sales_orders: (Pick<Tables<"sales_orders">, "so_number"> & {
+    customers: Pick<Tables<"customers">, "company_name"> | null;
+    sales_order_items: Pick<Tables<"sales_order_items">, "id" | "qty">[];
+  }) | null;
+  delivery_order_items: Pick<
+    Tables<"delivery_order_items">,
+    "qty_delivered" | "so_item_id"
+  >[];
+  calculatedStatus: "Partial" | "Completed";
+};
 
 export default function DeliveryOrderListClient({
   initialOrders,
 }: {
-  initialOrders: any[];
+  initialOrders: DeliveryOrderListRow[];
 }) {
   const [search, setSearch] = useState("");
   const deliveryOrders = initialOrders;
@@ -23,25 +37,6 @@ export default function DeliveryOrderListClient({
           .includes(search.toLowerCase())),
   );
 
-  const StatusBadge = ({ status }: { status: string }) => {
-    if (status === "Partial")
-      return (
-        <span className="bg-blue-100 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 shadow-sm">
-          ⏳ Partial (Sebagian)
-        </span>
-      );
-    if (status === "Completed")
-      return (
-        <span className="bg-teal-100 text-teal-700 border border-teal-200 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 shadow-sm">
-          ✅ Selesai (Full)
-        </span>
-      );
-    return (
-      <span className="bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 shadow-sm">
-        {status}
-      </span>
-    );
-  };
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto pb-10 animate-in fade-in duration-500 text-black">
@@ -136,7 +131,7 @@ export default function DeliveryOrderListClient({
                       </td>
                       <td className="p-4 text-sm font-bold text-slate-700">
                         {new Date(
-                          doItem.delivery_date || doItem.created_at,
+                          doItem.delivery_date || doItem.created_at || "",
                         ).toLocaleDateString("id-ID", {
                           day: "2-digit",
                           month: "long",
@@ -151,7 +146,7 @@ export default function DeliveryOrderListClient({
                         )}
                       </td>
                       <td className="p-4 text-center">
-                        <StatusBadge status={doItem.calculatedStatus} />
+                        <DeliveryStatusBadge status={doItem.calculatedStatus} />
                       </td>
                       <td className="p-4 text-center">
                         <Link
@@ -185,7 +180,7 @@ export default function DeliveryOrderListClient({
                       SO: {doItem.sales_orders?.so_number || "-"}
                     </div>
                   </div>
-                  <StatusBadge status={doItem.calculatedStatus} />
+                  <DeliveryStatusBadge status={doItem.calculatedStatus} />
                 </div>
 
                 <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
@@ -207,7 +202,7 @@ export default function DeliveryOrderListClient({
                     </span>
                     <span className="font-bold text-slate-700">
                       {new Date(
-                        doItem.delivery_date || doItem.created_at,
+                        doItem.delivery_date || doItem.created_at || "",
                       ).toLocaleDateString("id-ID", {
                         day: "2-digit",
                         month: "long",

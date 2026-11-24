@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { getErrorMessage } from "@/lib/errors";
+import type { Tables } from "@/lib/database.types";
 
 export default function TrackingPage() {
-  const [trackingData, setTrackingData] = useState<any[]>([]);
+  const [trackingData, setTrackingData] = useState<Tables<"view_document_tracking">[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
@@ -26,8 +28,8 @@ export default function TrackingPage() {
         console.log("Data berhasil ditarik:", data); 
         setTrackingData(data); 
       }
-    } catch (error: any) {
-      console.error("Gagal menarik data tracking:", error.message);
+    } catch (error) {
+      console.error("Gagal menarik data tracking:", getErrorMessage(error));
       alert("Gagal memuat data tracking.");
     } finally {
       setLoading(false); 
@@ -40,7 +42,7 @@ export default function TrackingPage() {
   );
 
   // Komponen Stepper untuk Visualisasi Timeline
-  const TrackingStepper = ({ trx }: { trx: any }) => {
+  const TrackingStepper = ({ trx }: { trx: Tables<"view_document_tracking"> }) => {
     
     const isQODone = !!trx.quotation_number; 
     const isSODone = !!trx.so_number;
@@ -172,7 +174,7 @@ export default function TrackingPage() {
                 <div className="flex justify-between items-start border-b border-slate-100 pb-4 mb-4 relative z-10">
                   <div>
                     <h3 className={`text-lg font-black ${isCancelled ? 'text-slate-500' : 'text-blue-700'}`}>{trx.company_name}</h3>
-                    <p className="text-sm font-mono text-slate-500 mt-1">SO Ref: {trx.so_number} • {new Date(trx.so_date).toLocaleDateString('id-ID')}</p>
+                    <p className="text-sm font-mono text-slate-500 mt-1">SO Ref: {trx.so_number} • {new Date(trx.so_date || '').toLocaleDateString('id-ID')}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Total Nilai</p>
