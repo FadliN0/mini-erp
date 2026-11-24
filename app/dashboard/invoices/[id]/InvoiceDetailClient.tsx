@@ -13,15 +13,33 @@ import {
   cancelInvoiceAction,
   updateInvoiceAddressAction,
 } from "./actions";
+import { getErrorMessage } from "@/lib/errors";
+import type { Tables } from "@/lib/database.types";
+
+export type InvoiceDetailItem = {
+  id: string;
+  product_id: string | null;
+  products: Pick<Tables<"products">, "part_code" | "part_name" | "unit" | "remark"> | null;
+  qty: number;
+  invoice_item_id: string;
+  qty_billed: number;
+  unit_price: number;
+  discount: number;
+  total_price: number;
+  item_note: string;
+};
 
 type InvoiceDetailClientProps = {
-  invoice: any;
-  salesOrder: any;
-  customer: any;
-  billingAddress: any;
-  items: any[];
-  paymentsHistory: any[];
-  allAddresses: any[];
+  invoice: Tables<"invoices">;
+  salesOrder: Tables<"sales_orders"> | null;
+  customer: Tables<"customers"> | null;
+  billingAddress: Tables<"customer_addresses"> | null;
+  items: InvoiceDetailItem[];
+  paymentsHistory: Tables<"payments">[];
+  allAddresses: Pick<
+    Tables<"customer_addresses">,
+    "id" | "address_type" | "complete_address" | "pic_name" | "pic_phone"
+  >[];
 };
 
 // Kapasitas baris untuk halaman penuh (tanpa TTD) vs halaman terakhir (dengan Total + TTD)
@@ -145,7 +163,7 @@ export default function InvoiceDetailClient({
   );
   const [itemNotes, setItemNotes] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
-    items.forEach((it: any) => {
+    items.forEach((it) => {
       const targetId = it.invoice_item_id || it.id;
       init[targetId] = it.item_note || "";
     });
@@ -153,7 +171,7 @@ export default function InvoiceDetailClient({
   });
   const [isSavingAll, setIsSavingAll] = useState(false);
 
-  const invoiceDateSource = invoice?.issue_date || invoice?.created_at || new Date().toISOString();
+  const invoiceDateSource = invoice?.created_at || new Date().toISOString();
   const todayFormatted = new Date(invoiceDateSource).toLocaleDateString("id-ID", {
     day: "2-digit",
     month: "long",
@@ -187,8 +205,8 @@ export default function InvoiceDetailClient({
     setIsSavingAll(true);
     try {
       const noteUpdates = items
-        .filter((it: any) => it.invoice_item_id)
-        .map((it: any) => ({
+        .filter((it) => it.invoice_item_id)
+        .map((it) => ({
           id: it.invoice_item_id,
           item_note: itemNotes[it.invoice_item_id] || "",
         }));
@@ -203,8 +221,8 @@ export default function InvoiceDetailClient({
       setIsDiscountModalOpen(false);
       toast.success("Diskon dan Catatan berhasil disimpan!", "Success");
       router.refresh();
-    } catch (error: any) {
-      toast.error(`Gagal menyimpan: ${error.message}`, "Error");
+    } catch (error) {
+      toast.error(`Gagal menyimpan: ${getErrorMessage(error)}`, "Error");
     } finally {
       setIsSavingAll(false);
     }
@@ -236,8 +254,8 @@ export default function InvoiceDetailClient({
       setPayRef("");
       setPaymentProofFile(null);
       router.refresh();
-    } catch (error: any) {
-      toast.error(`Gagal mencatat pembayaran: ${error.message}`, "Error");
+    } catch (error) {
+      toast.error(`Gagal mencatat pembayaran: ${getErrorMessage(error)}`, "Error");
     } finally {
       setIsSubmittingPayment(false);
     }
@@ -255,8 +273,8 @@ export default function InvoiceDetailClient({
       toast.success("Invoice berhasil dibatalkan!", "Success");
       setIsCancelModalOpen(false);
       router.refresh();
-    } catch (error: any) {
-      toast.error(`Gagal membatalkan invoice: ${error.message}`, "Error");
+    } catch (error) {
+      toast.error(`Gagal membatalkan invoice: ${getErrorMessage(error)}`, "Error");
     } finally {
       setIsSubmittingCancel(false);
     }
@@ -278,8 +296,8 @@ export default function InvoiceDetailClient({
       } else{
         alert(`Gagal : ${res.error}`);
       }
-    }catch (error: any){
-      alert(`Gagal : ${error.message}`);
+    }catch (error) {
+      alert(`Gagal : ${getErrorMessage(error)}`);
     } finally {
       setIsUpdatingAddress(false);
     }
@@ -616,7 +634,7 @@ export default function InvoiceDetailClient({
                   <div style={{ textAlign: "center", minWidth: "220px" }}>
                     <p style={{ margin: 0 }}>
                       Jakarta,{" "}
-                      {new Date(invoice?.invoice_date || new Date()).toLocaleDateString("id-ID", {
+                      {new Date().toLocaleDateString("id-ID", {
                         day: "numeric",
                         month: "long",
                         year: "numeric",
@@ -686,7 +704,7 @@ export default function InvoiceDetailClient({
                       <tbody>
                         <tr>
                           <td className="w-24 font-bold">Waktu Batal</td>
-                          <td>: {new Date(invoice?.canceled_at).toLocaleString("id-ID")}</td>
+                          <td>: {invoice?.canceled_at ? new Date(invoice.canceled_at).toLocaleString("id-ID") : "-"}</td>
                         </tr>
                         <tr>
                           <td className="font-bold align-top">Alasan</td>
@@ -780,7 +798,7 @@ export default function InvoiceDetailClient({
                         <tr>
                           <td style={ { width: 45, fontWeight: 700 } }>Email</td>
                           <td style={ { width: 15, fontWeight: 700 } }>:</td>
-                          <td>{billingAddress?.pic_email || customer?.email || "-"}</td>
+                          <td>{customer?.email || "-"}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -799,9 +817,7 @@ export default function InvoiceDetailClient({
                           <td style={ { paddingBottom: 3 } }>Date</td>
                           <td style={ { paddingBottom: 3 } }>:</td>
                           <td style={ { paddingBottom: 3 } }>
-                            {invoice?.issue_date
-                              ? fmtDate(invoice.issue_date)
-                              : invoice?.created_at
+                            {invoice?.created_at
                                 ? fmtDate(invoice.created_at)
                                 : "-"}
                           </td>
@@ -854,7 +870,7 @@ export default function InvoiceDetailClient({
                   </thead>
                   <tbody>
                     {pageItems.map((item, index) => {
-                      const product = item.products || item;
+                      const product = item.products;
                       const qty = item.qty_billed ?? item.qty ?? 1;
                       const price = item.unit_price ?? 0;
                       const amount = item.total_price ?? qty * price;
@@ -1006,7 +1022,7 @@ export default function InvoiceDetailClient({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {paymentsHistory.map((pay: any, idx: number) => (
+                {paymentsHistory.map((pay, idx: number) => (
                   <tr key={idx} className="hover:bg-slate-50">
                     <td className="py-3 px-3 text-slate-800 whitespace-nowrap">{fmtDate(pay.payment_date)}</td>
                     <td className="py-3 px-3 text-slate-700 whitespace-nowrap">

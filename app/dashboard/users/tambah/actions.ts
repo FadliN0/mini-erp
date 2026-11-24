@@ -2,6 +2,7 @@
 import { requireAtasan } from '@/lib/auth-guards';
 import { createAdminClient } from '@/lib/supabaseAdmin';
 import { usernameToEmail } from '@/lib/auth-utils'
+import { getErrorMessage } from "@/lib/errors";
 
 
 export async function createStaffAccount(
@@ -40,7 +41,7 @@ export async function createStaffAccount(
         throw new Error(profileError.message);
     }
     return { success: true, message: 'Akun Berhasil Dibuat'}
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
   }
 }

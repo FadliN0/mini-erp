@@ -4,11 +4,20 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Modal from '@/components/ui/Modal';
 import { smartPasteUpsertAction } from './actions';
+import { getErrorMessage } from "@/lib/errors";
+
+type ParsedProduct = {
+  part_code: string;
+  part_name: string;
+  price: number;
+  unit: string;
+  remark: string;
+};
 
 export default function SmartPasteProduct() {
   const [isOpen, setIsOpen] = useState(false);
   const [pastedText, setPastedText] = useState('');
-  const [parsedData, setParsedData] = useState<any[]>([]);
+  const [parsedData, setParsedData] = useState<ParsedProduct[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const router = useRouter();
 
@@ -51,8 +60,8 @@ export default function SmartPasteProduct() {
       setPastedText('');
       setParsedData([]);
       router.refresh();
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err) {
+      alert(getErrorMessage(err));
     } finally {
       setIsSaving(false);
     }

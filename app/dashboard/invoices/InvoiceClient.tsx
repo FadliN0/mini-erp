@@ -2,8 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import type { Tables } from "@/lib/database.types";
 
-type InvoiceClientProps = { invoices: any[] };
+type InvoiceListRow = Tables<"invoices"> & {
+  customers: Pick<Tables<"customers">, "company_name"> | null;
+  sales_orders: Pick<Tables<"sales_orders">, "so_number"> | null;
+};
+
+type InvoiceClientProps = { invoices: InvoiceListRow[] };
 
 export default function InvoiceClient({ invoices }: InvoiceClientProps) {
   const [search, setSearch] = useState("");
@@ -260,11 +266,11 @@ export default function InvoiceClient({ invoices }: InvoiceClientProps) {
                               : ""
                           }
                         >
-                          {fmtRp(inv.grand_total)}
+                          {fmtRp(inv.grand_total || 0)}
                         </span>
                       </td>
                       <td className="p-4 text-center">
-                        {getStatusBadge(inv.status)}
+                        {getStatusBadge(inv.status || "")}
                       </td>
                       <td className="p-4 text-center">
                         <Link
@@ -343,7 +349,7 @@ export default function InvoiceClient({ invoices }: InvoiceClientProps) {
                         )}
                       </div>
                     </div>
-                    {getStatusBadge(inv.status)}
+                    {getStatusBadge(inv.status || "")}
                   </div>
 
                   <div>
@@ -361,7 +367,7 @@ export default function InvoiceClient({ invoices }: InvoiceClientProps) {
                     <div
                       className={`text-lg font-black ${isCancelled ? "text-slate-400 line-through" : "text-slate-900"}`}
                     >
-                      {fmtRp(inv.grand_total)}
+                      {fmtRp(inv.grand_total || 0)}
                     </div>
                   </div>
 

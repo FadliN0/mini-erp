@@ -40,7 +40,7 @@ export default async function EditQuotationPage({
   const addresses = addressesRes.data;
   const itemsData = itemsRes.data;
 
-  const initialItems = (itemsData || []).map((i: any) => ({
+  const initialItems = (itemsData || []).map((i) => ({
     product_id: i.product_id,
     part_code: i.products?.part_code ?? "",
     part_name: i.products?.part_name ?? "",
@@ -60,7 +60,7 @@ export default async function EditQuotationPage({
       customers={customers || []}
       initialAddresses={addresses || []}
       initialQuotationNumber={quote.quotation_number}
-      initialValidUntil={quote.valid_until}
+      initialValidUntil={quote.valid_until || ""}
       initialCustomerId={quote.customer_id}
       initialAddressId={quote.address_id}
       initialMrNumber={quote.mr_number || ""}

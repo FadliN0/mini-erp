@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabaseServer';
 import { requireAdmin } from '@/lib/auth-guards';
 import { revalidatePath } from 'next/cache';
+import { getErrorMessage } from "@/lib/errors";
+import type { TablesInsert } from "@/lib/database.types";
 
 type ActionResult = { success: boolean; error?: string };
 
@@ -13,7 +15,7 @@ type UpdateQuotationPayload = {
   mrNumber: string;
   notes: string;
   grandTotal: number;
-  items: any[];
+  items: TablesInsert<"quotation_items">[];
 };
 
 export async function updateQuotationAction(
@@ -50,7 +52,7 @@ export async function updateQuotationAction(
 
     revalidatePath(`/dashboard/quotations/${id}`);
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
   }
 }

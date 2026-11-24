@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import TransactionsTab from './components/TransactionsTab';
 import ProductsTab from './components/ProductsTab';
+import type { Tables } from "@/lib/database.types";
 
 export default function ReportsClient({
   initialCustomers,
 }: {
-  initialCustomers: any[];
+  initialCustomers: Pick<Tables<"customers">, "id" | "company_name">[];
 }) {
   const [activeTab, setActiveTab] = useState<'transactions' | 'products'>(
     'transactions',

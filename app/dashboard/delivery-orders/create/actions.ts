@@ -23,5 +23,6 @@ export async function createDeliveryOrderAction(
 
   revalidatePath('/dashboard/delivery-orders');
   revalidatePath(`/dashboard/sales-orders/${so_id}`);
-  return { success: true, do_id: data?.do_id as string };
+  const result = data as { success: boolean; do_id: string; do_number: string } | null;
+  return { success: true, do_id: result?.do_id as string };
 }

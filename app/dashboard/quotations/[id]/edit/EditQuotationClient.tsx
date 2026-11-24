@@ -7,19 +7,22 @@ import Link from "next/link";
 import { useToast } from "@/components/ui/Alert";
 import { updateProductFieldAction } from "../../actions";
 import { updateQuotationAction } from "./actions";
+import { getErrorMessage } from "@/lib/errors";
+import type { Tables } from "@/lib/database.types";
+import type { QuotationFormItem, QuotationInitialItem } from "@/lib/quotation-items";
 
 type EditQuotationClientProps = {
   id: string;
-  products: any[];
-  customers: any[];
-  initialAddresses: any[];
+  products: Tables<"products">[];
+  customers: Tables<"customers">[];
+  initialAddresses: Tables<"customer_addresses">[];
   initialQuotationNumber: string;
   initialValidUntil: string;
   initialCustomerId: string;
   initialAddressId: string;
   initialMrNumber: string;
   initialNotes: string;
-  initialItems: any[];
+  initialItems: QuotationInitialItem[];
   initialGrandTotal: number;
 };
 
@@ -43,9 +46,9 @@ export default function EditQuotationClient({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [productsList, setProductsList] = useState<any[]>(products);
+  const [productsList, setProductsList] = useState<Tables<"products">[]>(products);
   const customersList = customers;
-  const [addressesList, setAddressesList] = useState<any[]>(initialAddresses);
+  const [addressesList, setAddressesList] = useState<Tables<"customer_addresses">[]>(initialAddresses);
 
   const [quotationNumber] = useState(initialQuotationNumber);
   const [validUntil, setValidUntil] = useState(initialValidUntil);
@@ -59,7 +62,7 @@ export default function EditQuotationClient({
   // TIDAK disimpan ke database. Nilai awal dipulihkan dari selisih sub total
   // item dengan grand total yang tersimpan (jika dulu ada diskon nominal).
   const [discountNominal, setDiscountNominal] = useState(() => {
-    const initSub = (initialItems || []).reduce((sum: number, i: any) => {
+    const initSub = (initialItems || []).reduce((sum: number, i) => {
       const lineTotal = (i.qty || 0) * (i.unit_price || 0);
       const disc = lineTotal * ((i.discount || 0) / 100);
       return sum + (lineTotal - disc);
@@ -68,7 +71,7 @@ export default function EditQuotationClient({
     return diff > 0 ? diff : 0;
   });
   // Bawa field `search` untuk combobox part code (diisi dari part_code awal)
-  const [items, setItems] = useState<any[]>(
+  const [items, setItems] = useState<QuotationFormItem[]>(
     initialItems.map((i) => ({
       ...i,
       search: i.part_code || "",
@@ -123,7 +126,7 @@ export default function EditQuotationClient({
       .eq("customer_id", custId);
     if (addrs) {
       setAddressesList(addrs);
-      const def = addrs.find((a: any) => a.is_default);
+      const def = addrs.find((a) => a.is_default);
       if (def) setSelectedAddressId(def.id);
       else if (addrs.length > 0) setSelectedAddressId(addrs[0].id);
     }
@@ -150,9 +153,13 @@ export default function EditQuotationClient({
     setOpenSearchIndex(null);
   };
 
-  const updateItemField = (index: number, field: string, value: any) => {
+  const updateItemField = (
+    index: number,
+    field: keyof QuotationFormItem,
+    value: string | number,
+  ) => {
     const newItems = [...items];
-    newItems[index] = { ...newItems[index], [field]: value };
+    newItems[index] = { ...newItems[index], [field]: value } as QuotationFormItem;
     setItems(newItems);
   };
 
@@ -233,9 +240,9 @@ export default function EditQuotationClient({
       toast.success("Dokumen quotation berhasil diperbarui.", "Tersimpan");
       router.push(`/dashboard/quotations/${id}`);
       router.refresh();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError(`Gagal menyimpan perubahan: ${err.message}`);
+      setError(`Gagal menyimpan perubahan: ${getErrorMessage(err)}`);
     } finally {
       setIsSaving(false);
     }

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCustomerHistoryAction, saveCompanyTargetAction, saveCustomerTargetAction } from './actions';
+import { getErrorMessage } from "@/lib/errors";
 
 // ─── ICONS ────────────────────────────────────────────────────────────────────
 // const IconTarget = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>;
@@ -43,7 +44,7 @@ const ProgressBar = ({ pct }: { pct: number }) => {
 };
 
 // ─── CUSTOMER TARGET INPUT ─────────────────────────────
-function CustTargetInput({ item, month, year, saving, onSave }: { item: any; month: number; year: number; saving: boolean; onSave: (id: string, val: string) => void; }) {
+function CustTargetInput({ item, month, year, saving, onSave }: { item: CustomerTargetRow; month: number; year: number; saving: boolean; onSave: (id: string, val: string) => void; }) {
   const [val, setVal] = React.useState(item.target > 0 ? String(item.target) : '');
   const [dirty, setDirty] = React.useState(false);
 
@@ -71,12 +72,32 @@ function CustTargetInput({ item, month, year, saving, onSave }: { item: any; mon
   );
 }
 
+// Baris data dari server (per pelanggan, satu bulan target)
+type CustomerTargetData = {
+  customer_id: string;
+  company_name: string;
+  target_amount: number;
+  target_id: string | undefined;
+  achieved_amount: number;
+  achievement_percentage: number;
+};
+
+// Bentuk matang untuk UI setelah diterjemahkan dari CustomerTargetData
+type CustomerTargetRow = {
+  id: string;
+  name: string;
+  target: number;
+  target_id: string | undefined;
+  actual: number;
+  percent: number;
+};
+
 // ─── PROPS DARI SERVER ────────────────────────────────────────────────────────
 interface Props {
   initialMonth: number;
   initialYear: number;
   initialCompanyTarget: number;
-  initialCustomerData: any[];
+  initialCustomerData: CustomerTargetData[];
 }
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
@@ -99,7 +120,7 @@ export default function TargetManagementClient({
   }, [initialCompanyTarget]);
 
   const [expandedCustId, setExpandedCustId] = useState<string | null>(null);
-  const [historyData, setHistoryData] = useState<any[]>([]);
+  const [historyData, setHistoryData] = useState<{ label: string; value: number }[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
   const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -132,7 +153,7 @@ export default function TargetManagementClient({
   const onTrack = customerData.filter(c => c.percent >= 75 && c.percent < 100).length;
   const lagging = customerData.filter(c => c.percent < 75).length;
 
-  const handleExpandRow = async (cust: any) => {
+  const handleExpandRow = async (cust: CustomerTargetRow) => {
     if (expandedCustId === cust.id) { setExpandedCustId(null); return; }
     setExpandedCustId(cust.id);
     setHistoryLoading(true);
@@ -167,8 +188,8 @@ export default function TargetManagementClient({
       // ─────────────────────────────────────────────────────────────────
       await saveCompanyTargetAction(initialMonth, initialYear, num);
       showSuccess('Company target berhasil disimpan ✓');
-    } catch (err: any) { 
-      showError(`Error: ${err?.message}`); 
+    } catch (err) { 
+      showError(`Error: ${getErrorMessage(err)}`); 
     } finally { 
       setSaving(false); 
     }
@@ -184,8 +205,8 @@ export default function TargetManagementClient({
       // ─────────────────────────────────────────────────────────────────
       await saveCustomerTargetAction(custId, initialMonth, initialYear, num);
       showSuccess('Target klien berhasil disimpan ✓');
-    } catch (err: any) { 
-      showError(`Error: ${err?.message}`); 
+    } catch (err) { 
+      showError(`Error: ${getErrorMessage(err)}`); 
     } finally { 
       setSaving(false); 
     }

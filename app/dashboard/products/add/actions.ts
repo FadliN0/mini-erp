@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabaseServer';
 import { requireAdmin } from '@/lib/auth-guards';
 import { revalidatePath } from 'next/cache';
+import { getErrorMessage } from "@/lib/errors";
 
 type ActionResult = { success: boolean; error?: string };
 
@@ -32,7 +33,7 @@ export async function bulkCreateProductsAction(
     }
     revalidatePath('/dashboard/products');
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
   }
 }

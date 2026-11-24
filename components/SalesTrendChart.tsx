@@ -20,7 +20,19 @@ const fmtRpShort = (num: number) => {
   return `Rp ${num}`;
 };
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+type TooltipProps = {
+  active?: boolean;
+  payload?: Array<{ value: number }>;
+  label?: string;
+};
+
+type DotRenderProps = {
+  cx?: number;
+  cy?: number;
+  payload: ChartDataItem;
+};
+
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white border border-gray-100 shadow-lg rounded-xl px-4 py-3 text-sm">
@@ -79,7 +91,7 @@ export default function SalesTrendChart({ data }: Props) {
             stroke="#3b82f6"
             strokeWidth={2.5}
             fill="url(#gradBlue)"
-            dot={(props: any) => {
+            dot={(props: DotRenderProps) => {
               const { cx, cy, payload } = props;
               return payload.total > 0
                 ? <circle key={`dot-${cx}`} cx={cx} cy={cy} r={5} fill="#3b82f6" stroke="#fff" strokeWidth={2} />

@@ -5,8 +5,13 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { deleteQuotationAction } from './actions';
 import { useToast } from '@/components/ui/Alert';
+import type { Tables } from "@/lib/database.types";
 
-type QuotationClientProps = { initialQuotations: any[] };
+type QuotationListRow = Tables<"quotations"> & {
+  customers: Pick<Tables<"customers">, "company_name"> | null;
+};
+
+type QuotationClientProps = { initialQuotations: QuotationListRow[] };
 
 export default function QuotationClient({
   initialQuotations,
@@ -40,7 +45,7 @@ export default function QuotationClient({
   );
 
   // Komponen Helper untuk Badge Status
-  const StatusBadge = ({ status }: { status: string }) => {
+  const StatusBadge = ({ status }: { status: string | null }) => {
     switch (status) {
       case 'Draft':
         return <span className="badge-neutral">Draft</span>;
@@ -189,7 +194,7 @@ export default function QuotationClient({
                     </td>
                     <td className="p-4">
                       <div className="text-sm font-bold text-slate-800">
-                        {new Date(q.created_at).toLocaleDateString('id-ID', {
+                        {new Date(q.created_at || new Date()).toLocaleDateString('id-ID', {
                           day: 'numeric',
                           month: 'short',
                           year: 'numeric',
@@ -197,7 +202,7 @@ export default function QuotationClient({
                       </div>
                       <div className="text-[10px] font-medium text-slate-400">
                         Valid:{' '}
-                        {new Date(q.valid_until).toLocaleDateString('id-ID', {
+                        {new Date(q.valid_until || new Date()).toLocaleDateString('id-ID', {
                           day: 'numeric',
                           month: 'short',
                           year: 'numeric',
@@ -286,7 +291,7 @@ export default function QuotationClient({
                       {q.quotation_number}
                     </div>
                     <div className="text-xs text-slate-500 mt-0.5">
-                      {new Date(q.created_at).toLocaleDateString('id-ID', {
+                      {new Date(q.created_at || new Date()).toLocaleDateString('id-ID', {
                         day: 'numeric',
                         month: 'short',
                         year: 'numeric',

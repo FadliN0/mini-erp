@@ -6,10 +6,13 @@ import Link from "next/link";
 import { useToast } from "@/components/ui/Alert";
 import { updateProductFieldAction } from "../actions";
 import { createQuotationAction, getCustomerAddressesAction } from "./actions";
+import { getErrorMessage } from "@/lib/errors";
+import type { Tables } from "@/lib/database.types";
+import type { QuotationFormItem, QuotationInitialItem } from "@/lib/quotation-items";
 
 type CreateQuotationClientProps = {
-  products: any[];
-  customers: any[];
+  products: Tables<"products">[];
+  customers: Tables<"customers">[];
   initialQuotationNumber: string;
   initialValidUntil: string;
 };
@@ -24,9 +27,9 @@ export default function CreateQuotationClient({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [productsList, setProductsList] = useState<any[]>(products);
+  const [productsList, setProductsList] = useState<Tables<"products">[]>(products);
   const customersList = customers;
-  const [addressesList, setAddressesList] = useState<any[]>([]);
+  const [addressesList, setAddressesList] = useState<Tables<"customer_addresses">[]>([]);
 
   const [quotationNumber] = useState(initialQuotationNumber);
   const [validUntil, setValidUntil] = useState(initialValidUntil);
@@ -39,7 +42,7 @@ export default function CreateQuotationClient({
   // TIDAK disimpan ke database. Yang disimpan tetap grand total.
   const [discountNominal, setDiscountNominal] = useState(0);
 
-  const [items, setItems] = useState([
+  const [items, setItems] = useState<QuotationFormItem[]>([
     {
       product_id: "",
       part_code: "",
@@ -89,7 +92,7 @@ export default function CreateQuotationClient({
     const addrs = await getCustomerAddressesAction(id);
     if (addrs && addrs.length > 0) {
       setAddressesList(addrs);
-      const def = addrs.find((a: any) => a.is_default);
+      const def = addrs.find((a) => a.is_default);
       if (def) setSelectedAddressId(def.id);
       else setSelectedAddressId(addrs[0].id);
     } else {
@@ -108,19 +111,23 @@ export default function CreateQuotationClient({
         part_name: prod.part_name,
         unit: prod.unit,
         unit_price: prod.price,
-        remark: prod.remark,
+        remark: prod.remark ?? "",
         search: prod.part_code,
         _db_price: prod.price,
-        _db_remark: prod.remark,
+        _db_remark: prod.remark ?? "",
       };
       setItems(newItems);
     }
     setOpenSearchIndex(null);
   };
 
-  const updateItemField = (index: number, field: string, value: any) => {
+  const updateItemField = (
+    index: number,
+    field: keyof QuotationFormItem,
+    value: string | number,
+  ) => {
     const newItems = [...items];
-    newItems[index] = { ...newItems[index], [field]: value };
+    newItems[index] = { ...newItems[index], [field]: value } as QuotationFormItem;
     setItems(newItems);
   };
 
@@ -207,10 +214,10 @@ export default function CreateQuotationClient({
 
       toast.success("Quotation berhasil dibuat!");
       router.push("/dashboard/quotations");
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error Transaction:", err);
       setError(
-        err.message || "Terjadi kesalahan sistem saat menyimpan dokumen.",
+        getErrorMessage(err) || "Terjadi kesalahan sistem saat menyimpan dokumen.",
       );
     } finally {
       setIsLoading(false);

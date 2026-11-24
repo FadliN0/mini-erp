@@ -58,5 +58,6 @@ export async function createInvoiceFromSoAction(id: string) {
 
   revalidatePath(`/dashboard/sales-orders/${id}`);
   revalidatePath('/dashboard/invoices');
-  return { invoice_number: data?.invoice_number as string };
+  const result = data as { success: boolean; invoice_id: string; invoice_number: string } | null;
+  return { invoice_number: result?.invoice_number as string };
 }

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import type { Tables } from "@/lib/database.types";
 
 /* ─── Konfigurasi Pagination Pintar ─── */
 const ROWS_FULL_PAGE = 15; // Kapasitas halaman penuh (tanpa Total & TTD)
@@ -32,6 +33,15 @@ function paginateItems<T>(list: T[]): T[][] {
   return result;
 }
 
+type DeliveryOrderItemRow = {
+  id: string;
+  qty_delivered: number;
+  so_item_id: string;
+  sales_order_items: {
+    products: Pick<Tables<"products">, "part_code" | "part_name" | "unit" | "remark"> | null;
+  } | null;
+};
+
 export default function DeliveryOrderDetailClient({
   deliveryOrder,
   salesOrder,
@@ -42,12 +52,12 @@ export default function DeliveryOrderDetailClient({
   isPartialDelivery,
   invoiceNumber,
 }: {
-  deliveryOrder: any;
-  salesOrder: any;
-  customer: any;
-  billingAddress: any;
-  shippingAddress: any;
-  items: any[];
+  deliveryOrder: Tables<"delivery_orders">;
+  salesOrder: Tables<"sales_orders"> | null;
+  customer: Tables<"customers"> | null;
+  billingAddress: Tables<"customer_addresses"> | null;
+  shippingAddress: Tables<"customer_addresses"> | null;
+  items: DeliveryOrderItemRow[];
   isPartialDelivery: boolean;
   invoiceNumber: string | null;
 }) {
