@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabaseServer';
+import { requireAdmin } from '@/lib/auth-guards';
 import { revalidatePath } from 'next/cache';
 
 type ActionResult = { success: boolean; error?: string };
@@ -8,6 +9,7 @@ type ActionResult = { success: boolean; error?: string };
 export async function deleteQuotationAction(id: string): Promise<ActionResult> {
   const supabase = await createClient();
   try {
+    await requireAdmin();
     const { error } = await supabase.from('quotations').delete().eq('id', id);
     if (error) throw error;
     revalidatePath('/dashboard/quotations');
@@ -25,6 +27,7 @@ export async function updateProductFieldAction(
 ): Promise<ActionResult> {
   const supabase = await createClient();
   try {
+    await requireAdmin();
     const { error } = await supabase
       .from('products')
       .update({ [field]: value })

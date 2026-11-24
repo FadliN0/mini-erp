@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabaseServer';
+import { requireUser } from '@/lib/auth-guards';
 
 type ReportResult = { success: boolean; data?: any[]; error?: string };
 
@@ -16,6 +17,7 @@ export async function fetchTransactionsReportAction(
 ): Promise<ReportResult> {
   const supabase = await createClient();
   try {
+    await requireUser();
     let query = supabase
       .from('view_finance_reports')
       .select('*')
@@ -44,6 +46,7 @@ export async function fetchProductHistoryAction(
 ): Promise<ReportResult> {
   const supabase = await createClient();
   try {
+    await requireUser();
     let query = supabase.from('sales_order_items').select(`
       qty, unit_price, total_price,
       products!inner(part_code, part_name, unit),

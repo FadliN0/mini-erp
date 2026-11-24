@@ -1,5 +1,6 @@
 'use server';
 import { createClient } from '@/lib/supabaseServer';
+import { requireAdmin } from '@/lib/auth-guards';
 import { revalidatePath } from 'next/cache';
 
 export async function createDeliveryOrderAction(
@@ -7,6 +8,7 @@ export async function createDeliveryOrderAction(
   address_id: string,
   items: Array<{ so_item_id: string; qty_delivered: number }>,
 ) {
+  await requireAdmin();
   const supabase = await createClient();
   const today = new Date().toISOString().split('T')[0];
 

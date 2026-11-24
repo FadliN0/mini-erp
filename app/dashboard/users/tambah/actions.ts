@@ -1,21 +1,8 @@
 'use server';
-import { createClient } from '@/lib/supabaseServer';
+import { requireAtasan } from '@/lib/auth-guards';
 import { createAdminClient } from '@/lib/supabaseAdmin';
 import { usernameToEmail } from '@/lib/auth-utils'
 
-
-async function assertAdmin(){
-  const supabase = await createClient();
-  const { data: {user}} = await supabase.auth.getUser();
-  if (!user) throw new Error('Akses ditolak : User belum login');
-
-  const {data: profile} =await supabase
-  .from('profiles').select('role').eq('id', user.id).single();
-
-  if (profile?.role?.toLowerCase() !== 'atasan'){
-    throw new Error('Akses ditolak : Hanya Atasan')
-  }
-}
 
 export async function createStaffAccount(
   username: string,
@@ -23,7 +10,7 @@ export async function createStaffAccount(
   role: string,
 ) {
   try {
-    await assertAdmin();
+    await requireAtasan();
     const cleanUsername = username.trim().toLowerCase();
     const email = usernameToEmail(username);
 
