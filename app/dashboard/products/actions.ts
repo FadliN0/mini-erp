@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabaseServer';
+import { requireAdmin } from '@/lib/auth-guards';
 import { revalidatePath } from 'next/cache';
 
 type ActionResult = { success: boolean; error?: string };
@@ -18,6 +19,7 @@ export async function createProductAction(
 ): Promise<ActionResult> {
   const supabase = await createClient();
   try {
+    await requireAdmin();
     const { error } = await supabase.from('products').insert([payload]);
     if (error) throw error;
     revalidatePath('/dashboard/products');
@@ -33,6 +35,7 @@ export async function updateProductAction(
 ): Promise<ActionResult> {
   const supabase = await createClient();
   try {
+    await requireAdmin();
     const { error } = await supabase
       .from('products')
       .update(payload)
@@ -48,6 +51,7 @@ export async function updateProductAction(
 export async function deleteProductAction(id: string): Promise<ActionResult> {
   const supabase = await createClient();
   try {
+    await requireAdmin();
     const { error } = await supabase.from('products').delete().eq('id', id);
     if (error) throw error;
     revalidatePath('/dashboard/products');
@@ -66,6 +70,7 @@ export async function smartPasteUpsertAction(
 ): Promise<ActionResult> {
   const supabase = await createClient();
   try {
+    await requireAdmin();
     const { error } = await supabase
       .from('products')
       .upsert(products, { onConflict: 'part_code', ignoreDuplicates: false });

@@ -1,9 +1,11 @@
 "use server";
 import { createClient } from '@/lib/supabaseServer';
+import { requireAtasan } from '@/lib/auth-guards';
 import { revalidatePath } from 'next/cache';
 
 // Fungsi 1: Simpan Target Perusahaan
 export async function saveCompanyTargetAction(month: number, year: number, target_amount: number) {
+  await requireAtasan();
   const supabase = await createClient();
   
   // Logika Upsert/Delete/Insert persis seperti kode lama Anda, tapi jalan di Server
@@ -24,6 +26,7 @@ export async function saveCompanyTargetAction(month: number, year: number, targe
 
 // Fungsi 2: Simpan Target Pelanggan
 export async function saveCustomerTargetAction(customerId: string, month: number, year: number, target_amount: number) {
+  await requireAtasan();
   const supabase = await createClient();
   
   const { error: upsertErr } = await supabase
@@ -41,9 +44,8 @@ export async function saveCustomerTargetAction(customerId: string, month: number
 }
 
 export async function getCustomerHistoryAction(custId: string) {
+  await requireAtasan();
   const supabase = await createClient()
-
-  // (idealnya) cek user login/role dulu di sini ← keamanan!
 
   const { data, error } = await supabase
     .from('v_transaction_lifecycle')

@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabaseServer';
+import { requireUser, requireAtasan, requireAdmin } from '@/lib/auth-guards';
 import { revalidatePath } from 'next/cache';
 
 type ActionResult = { success: boolean; error?: string };
@@ -23,6 +24,7 @@ export async function saveInvoiceEditsAction(
 ): Promise<ActionResult> {
   const supabase = await createClient();
   try {
+    await requireAdmin();
     // 1. Cek autentikasi & status invoice saat ini
     const { data: inv, error: fetchErr } = await supabase
       .from('invoices')
@@ -126,11 +128,7 @@ export async function recordPaymentAction(
 ): Promise<ActionResult> {
   const supabase = await createClient();
   try {
-    // 1. Validasi Role di sisi Server (Hanya 'atasan' yang boleh mencatat pembayaran)
-    const { data: role } = await supabase.rpc('get_user_role');
-    if (role?.toLowerCase() !== 'atasan') {
-      throw new Error('Akses ditolak: Hanya Atasan yang dapat mencatat pembayaran.');
-    }
+    await requireAtasan();
 
     if (!payload.amountPaid || payload.amountPaid <= 0) {
       throw new Error('Nominal pembayaran harus lebih dari 0.');
@@ -196,6 +194,7 @@ export async function cancelInvoiceAction(
 ): Promise<ActionResult> {
   const supabase = await createClient();
   try {
+    await requireUser();
     if (!reason || !reason.trim()) {
       throw new Error('Alasan pembatalan wajib diisi.');
     }
@@ -218,6 +217,7 @@ export async function updateInvoiceAddressAction(
   newAddressID: string
 ){
   try{
+    await requireUser();
     const supabase = await createClient();
     //Update address_id di table invoices
     const{error} = await supabase

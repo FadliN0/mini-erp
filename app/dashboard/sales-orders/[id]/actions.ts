@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabaseServer';
+import { requireAdmin } from '@/lib/auth-guards';
 import { revalidatePath } from 'next/cache';
 
 
@@ -11,6 +12,7 @@ export async function updateSalesOrderStatusAction(id: string, newStatus: string
     );
   }
 
+  await requireAdmin();
   const supabase = await createClient();
 
   // Validasi server-side: cegah pembatalan jika sudah ada DO / Invoice
@@ -40,6 +42,7 @@ export async function updateSalesOrderStatusAction(id: string, newStatus: string
  * 'generate_full_invoice_from_so' (due date default 30 hari).
  */
 export async function createInvoiceFromSoAction(id: string) {
+  await requireAdmin();
   const supabase = await createClient();
 
   const dueDate = new Date();
