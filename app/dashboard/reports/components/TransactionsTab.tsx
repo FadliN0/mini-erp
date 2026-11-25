@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { fetchTransactionsReportAction } from '../actions';
 import { getErrorMessage } from "@/lib/errors";
 import type { Tables } from "@/lib/database.types";
+import { fmtRp, fmtDateID } from "@/lib/format";
 
 // --- Utility Functions Khusus Tab Transaksi ---
-const fmtRp = (num: number) => `Rp ${Number(num || 0).toLocaleString('id-ID')}`;
 
 const getBadgeStyle = (status: string | null) => {
   const s = status?.toLowerCase() || '';
@@ -53,15 +53,6 @@ export default function TransactionsTab({
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [reportData, setReportData] = useState<Tables<"view_finance_reports">[]>([]);
  
-  const fmtDate = (date: string | Date | null) => {
-    if (!date) return '-';
-    return new Date(date).toLocaleDateString('id-ID', {
-      timeZone: 'Asia/Jakarta',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-  };
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -122,7 +113,7 @@ export default function TransactionsTab({
           : Math.max(0, (item.total_order_value || 0) - (item.total_paid_amount || 0));
 
       return [
-        fmtDate(item.so_date),
+        fmtDateID(item.so_date),
         `"${item.company_name || ''}"`,
         item.po_number || '-',
         item.so_number ?? '',
@@ -130,7 +121,7 @@ export default function TransactionsTab({
         item.delivery_status ?? '',
         item.invoice_number ?? '',
         item.invoice_created_at
-          ? fmtDate(item.invoice_created_at) : '-',
+          ? fmtDateID(item.invoice_created_at) : '-',
         item.payment_status ?? '',
         item.total_order_value ?? '',
         item.total_paid_amount || 0,
@@ -250,7 +241,7 @@ export default function TransactionsTab({
                       className={`cursor-pointer transition-colors group ${isCancelled ? 'bg-slate-50 opacity-70' : 'hover:bg-blue-50/50'}`}
                     >
                       <td className="p-4 text-slate-600 font-medium">
-                        {fmtDate(item.so_date)}
+                        {fmtDateID(item.so_date)}
                       </td>
                       <td
                         className={`p-4 font-black uppercase ${isCancelled ? 'text-slate-500' : 'text-slate-900'}`}
@@ -288,7 +279,7 @@ export default function TransactionsTab({
                         </div>
                         {item.invoice_number && (
                           <div className="text-[10px] text-slate-400 font-medium mt-0.5">
-                            {fmtDate(item.invoice_created_at)}
+                            {fmtDateID(item.invoice_created_at)}
                           </div>
                         )}
                       </td>

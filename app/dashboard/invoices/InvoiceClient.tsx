@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { Tables } from "@/lib/database.types";
+import { fmtRp } from "@/lib/format";
+import { InvoiceStatusBadge } from "@/components/ui/status-badges";
 
 type InvoiceListRow = Tables<"invoices"> & {
   customers: Pick<Tables<"customers">, "company_name"> | null;
@@ -45,31 +47,6 @@ export default function InvoiceClient({ invoices }: InvoiceClientProps) {
     return matchSearch;
   });
 
-  // Helper untuk warna status (Badge)
-  const getStatusBadge = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "paid":
-        return <span className="badge-success">Lunas</span>;
-      case "partial":
-        return (
-          <span className="bg-blue-100 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider inline-block">
-            Parsial
-          </span>
-        );
-      case "cancelled":
-      case "canceled":
-        return (
-          <span className="bg-rose-100 text-rose-800 border border-rose-200 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider inline-block">
-            Dibatalkan
-          </span>
-        );
-      case "unpaid":
-      default:
-        return <span className="badge-danger">Belum Bayar</span>;
-    }
-  };
-
-  const fmtRp = (num: number) => `Rp ${(num || 0).toLocaleString("id-ID")}`;
 
   const overdueCount = invoices.filter((inv) => {
     const statusLower = inv.status?.toLowerCase();
@@ -270,7 +247,7 @@ export default function InvoiceClient({ invoices }: InvoiceClientProps) {
                         </span>
                       </td>
                       <td className="p-4 text-center">
-                        {getStatusBadge(inv.status || "")}
+                        <InvoiceStatusBadge status={inv.status || ""} />
                       </td>
                       <td className="p-4 text-center">
                         <Link
@@ -349,7 +326,7 @@ export default function InvoiceClient({ invoices }: InvoiceClientProps) {
                         )}
                       </div>
                     </div>
-                    {getStatusBadge(inv.status || "")}
+                    <InvoiceStatusBadge status={inv.status || ""} />
                   </div>
 
                   <div>

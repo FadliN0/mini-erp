@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Modal from '@/components/ui/Modal';
 import { smartPasteUpsertAction } from './actions';
 import { getErrorMessage } from "@/lib/errors";
+import { fmtRp } from "@/lib/format";
 
 type ParsedProduct = {
   part_code: string;
@@ -66,8 +67,6 @@ export default function SmartPasteProduct() {
       setIsSaving(false);
     }
   };
-
-  const fmtRp = (num: number) => `Rp ${num.toLocaleString('id-ID')}`;
 
   return (
     <>

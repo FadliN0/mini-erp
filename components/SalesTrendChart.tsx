@@ -3,6 +3,7 @@
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
+import { fmtRp } from "@/lib/format";
 
 interface ChartDataItem {
   bulan: string;
@@ -12,8 +13,6 @@ interface ChartDataItem {
 interface Props {
   data: ChartDataItem[];
 }
-
-const fmtRp = (num: number) => `Rp ${Number(num).toLocaleString('id-ID')}`;
 const fmtRpShort = (num: number) => {
   if (num >= 1_000_000) return `Rp ${(num / 1_000_000).toFixed(0)}jt`;
   if (num >= 1_000) return `Rp ${(num / 1_000).toFixed(0)}rb`;
