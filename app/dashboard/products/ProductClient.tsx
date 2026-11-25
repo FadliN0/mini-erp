@@ -14,6 +14,7 @@ import {
   deleteProductAction,
 } from './actions';
 import type { Tables } from "@/lib/database.types";
+import { fmtRp } from "@/lib/format";
 
 type ProductClientProps = { initialProducts: Tables<"products">[] };
 
@@ -131,8 +132,6 @@ export default function ProductClient({ initialProducts }: ProductClientProps) {
     toast.info(`Produk ${part_name} telah dihapus.`)
     router.refresh();
   };
-
-  const fmtRp = (num: number) => `Rp ${num.toLocaleString('id-ID')}`;
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto pb-10">

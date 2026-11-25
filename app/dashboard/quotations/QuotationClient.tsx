@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { deleteQuotationAction } from './actions';
 import { useToast } from '@/components/ui/Alert';
 import type { Tables } from "@/lib/database.types";
+import { fmtRp } from "@/lib/format";
+import { QuotationStatusBadge } from "@/components/ui/status-badges";
 
 type QuotationListRow = Tables<"quotations"> & {
   customers: Pick<Tables<"customers">, "company_name"> | null;
@@ -44,27 +46,6 @@ export default function QuotationClient({
         q.customers.company_name.toLowerCase().includes(search.toLowerCase())),
   );
 
-  // Komponen Helper untuk Badge Status
-  const StatusBadge = ({ status }: { status: string | null }) => {
-    switch (status) {
-      case 'Draft':
-        return <span className="badge-neutral">Draft</span>;
-      case 'Sent':
-        return (
-          <span className="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider inline-block">
-            Dikirim
-          </span>
-        );
-      case 'Approved':
-        return <span className="badge-success">Disetujui</span>;
-      case 'Rejected':
-        return <span className="badge-danger">Ditolak</span>;
-      default:
-        return <span className="badge-neutral">{status}</span>;
-    }
-  };
-
-  const fmtRp = (num: number) => `Rp ${Number(num).toLocaleString('id-ID')}`;
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
@@ -222,7 +203,7 @@ export default function QuotationClient({
                       {fmtRp(q.grand_total || 0)}
                     </td>
                     <td className="p-4 text-center">
-                      <StatusBadge status={q.status} />
+                      <QuotationStatusBadge status={q.status} />
                     </td>
                     <td className="p-4 text-center">
                       <div className="flex items-center justify-center gap-3">
@@ -298,7 +279,7 @@ export default function QuotationClient({
                       })}
                     </div>
                   </div>
-                  <StatusBadge status={q.status} />
+                  <QuotationStatusBadge status={q.status} />
                 </div>
 
                 <div>

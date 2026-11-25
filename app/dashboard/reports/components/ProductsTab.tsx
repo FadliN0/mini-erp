@@ -5,9 +5,9 @@ import { fetchProductHistoryAction } from '../actions';
 import { getErrorMessage } from "@/lib/errors";
 import type { Tables } from "@/lib/database.types";
 import type { ProductHistoryRow } from "../actions";
+import { fmtRp } from "@/lib/format";
 
 // --- Utility Functions Khusus Tab Barang ---
-const fmtRp = (num: number) => `Rp ${Number(num || 0).toLocaleString('id-ID')}`;
 
 const downloadBlob = (headers: string[], rows: (string | number)[][], filename: string) => {
   const csvContent = [headers.join(','), ...rows.map((e) => e.join(','))].join(

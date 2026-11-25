@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import SalesTrendChart from '@/components/SalesTrendChart';
 import type { Tables } from "@/lib/database.types";
+import { fmtRp } from "@/lib/format";
 
 interface Props {
   userName: string;
@@ -13,8 +14,6 @@ interface Props {
 }
 
 export default function DashboardClient({ userName, kpi, recentTrx, chartData }: Props) {
-  
-  const fmtRp = (num: number) => `Rp ${Number(num).toLocaleString('id-ID')}`;
   
   const getGreeting = () => {
     const hour = new Date().getHours();
