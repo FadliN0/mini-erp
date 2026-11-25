@@ -6,6 +6,8 @@ import {
   updateQuotationStatusAction,
   generateSalesOrderAction,
 } from "./actions";
+import { getErrorMessage } from "@/lib/errors";
+import type { Tables } from "@/lib/database.types";
 
 /* ─── Konfigurasi Pagination Pintar ─── */
 const ROWS_FULL_PAGE = 12; // Kapasitas halaman penuh (tanpa Total, Note & TTD)
@@ -66,13 +68,19 @@ const tdItem: React.CSSProperties = {
   verticalAlign: "middle",
 };
 
+type QuotationItemWithProduct = Tables<"quotation_items"> & {
+  products: Tables<"products"> | null;
+};
+
+type ExistingSO = Pick<Tables<"sales_orders">, "id" | "so_number">;
+
 type QuotationDetailClientProps = {
   id: string;
-  initialQuotation: any;
-  customer: any;
-  address: any;
-  items: any[];
-  initialExistingSO: any;
+  initialQuotation: Tables<"quotations">;
+  customer: Tables<"customers"> | null;
+  address: Tables<"customer_addresses"> | null;
+  items: QuotationItemWithProduct[];
+  initialExistingSO: ExistingSO | null;
 };
 
 export default function QuotationDetailClient({
@@ -83,11 +91,11 @@ export default function QuotationDetailClient({
   items,
   initialExistingSO,
 }: QuotationDetailClientProps) {
-  const [quotation, setQuotation] = useState<any>(initialQuotation);
-  const [existingSO, setExistingSO] = useState<any>(initialExistingSO);
+  const [quotation, setQuotation] = useState<Tables<"quotations">>(initialQuotation);
+  const [existingSO, setExistingSO] = useState<ExistingSO | null>(initialExistingSO);
 
   const subTotal = (items || []).reduce(
-    (sum: number, i: any) => sum + (i.total_price || 0),
+    (sum: number, i) => sum + (i.total_price || 0),
     0,
   );
   const discountAmount = Math.max(
@@ -135,20 +143,20 @@ export default function QuotationDetailClient({
         product_id: i.product_id,
         qty: i.qty,
         unit_price: i.unit_price,
-        discount: i.discount,
-        total_price: i.total_price,
+        discount: i.discount || 0,
+        total_price: i.total_price || 0,
       }));
       const res = await generateSalesOrderAction({
         quotationId: id,
         poNumber: poInput.trim(),
         customerId: quotation.customer_id,
         addressId: quotation.address_id,
-        grandTotal: quotation.grand_total,
+        grandTotal: quotation.grand_total ?? 0,
         items: itemsPayload,
       });
       if (!res.success) throw new Error(res.error);
       const rpcResult = res.data;
-      if (rpcResult && rpcResult.success) {
+      if (rpcResult && rpcResult.success && rpcResult.so_id && rpcResult.so_number) {
         alert(
           `Sukses! Dokumen Sales Order ${rpcResult.so_number} berhasil diterbitkan.`,
         );
@@ -159,9 +167,9 @@ export default function QuotationDetailClient({
           "Respons database tidak sesuai atau gagal memproses SO.",
         );
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
-      alert(`Gagal membuat SO: ${error.message}`);
+      alert(`Gagal membuat SO: ${getErrorMessage(error)}`);
     } finally {
       setIsCreatingSO(false);
     }
@@ -523,7 +531,7 @@ export default function QuotationDetailClient({
                     <td style={{ ...tdLabel, verticalAlign: "top" }}>Date</td>
                     <td style={{ ...tdColon, verticalAlign: "top" }}>:</td>
                     <td style={{ ...tdValue, verticalAlign: "top" }}>
-                      {new Date(quotation.created_at)
+                      {new Date(quotation.created_at || new Date())
                         .toLocaleDateString("id-ID", {
                           day: "2-digit",
                           month: "short",
@@ -628,7 +636,7 @@ export default function QuotationDetailClient({
                         </div>
                       </td>
                       <td style={{ ...tdItem, textAlign: "center" }}>
-                        {item.discount > 0
+                        {item.discount
                           ? `${String(item.discount).replace(".", ",")}%`
                           : ""}
                       </td>

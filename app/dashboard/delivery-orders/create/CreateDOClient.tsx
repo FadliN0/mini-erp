@@ -5,6 +5,20 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createDeliveryOrderAction } from './actions';
 import { useToast } from '@/components/ui/Alert';
+import { getErrorMessage } from "@/lib/errors";
+import type { Tables } from "@/lib/database.types";
+
+type CreateDOItem = {
+  so_item_id: string;
+  product_id: string;
+  ordered_qty: number;
+  delivered_qty: number;
+  remaining_qty: number;
+  part_code: string;
+  part_name: string;
+  unit: string;
+  qty_to_deliver: number;
+};
 
 export default function CreateDOClient({
   soId,
@@ -14,15 +28,17 @@ export default function CreateDOClient({
   preselectedAddressId,
 }: {
   soId: string;
-  salesOrder: any;
-  availableAddresses: any[];
-  initialItems: any[];
+  salesOrder: (Tables<"sales_orders"> & {
+    customers: Pick<Tables<"customers">, "company_name"> | null;
+  }) | null;
+  availableAddresses: Tables<"customer_addresses">[];
+  initialItems: CreateDOItem[];
   preselectedAddressId: string;
 }) {
   const toast = useToast();
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
-  const [itemsToDeliver, setItemsToDeliver] = useState<any[]>(initialItems);
+  const [itemsToDeliver, setItemsToDeliver] = useState<CreateDOItem[]>(initialItems);
   const [selectedAddressId, setSelectedAddressId] = useState<string>(preselectedAddressId);
 
   const handleQtyChange = (index: number, val: number) => {
@@ -58,8 +74,8 @@ export default function CreateDOClient({
 
       const res = await createDeliveryOrderAction(soId, selectedAddressId, itemsPayload);
       router.push(`/dashboard/delivery-orders/${res.do_id}`);
-    } catch (error: any) {
-      toast.error(`Gagal menyimpan: ${error.message}`, 'Error');
+    } catch (error) {
+      toast.error(`Gagal menyimpan: ${getErrorMessage(error)}`, 'Error');
     } finally {
       setIsSaving(false);
     }

@@ -1,6 +1,7 @@
 'use server'
 import { createAdminClient } from '@/lib/supabaseAdmin'
 import { requireAtasan } from '@/lib/auth-guards'
+import { getErrorMessage } from "@/lib/errors";
 
 export async function getUsers() {
   try {
@@ -12,8 +13,8 @@ export async function getUsers() {
       .order('username', { ascending: true })
     if (error) throw error
     return { success: true, data }
-  } catch (error: any) {
-    return { success: false, error: error.message }
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) }
   }
 }
 
@@ -27,7 +28,7 @@ export async function updateUserPassword(userId: string, newPassword: string) {
     })
     if (error) throw error
     return { success: true, message: 'Password berhasil diubah!' }
-  } catch (error: any) {
-    return { success: false, error: error.message }
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) }
   }
 }

@@ -4,21 +4,22 @@ import { useState, useTransition } from 'react';
 import Modal from '@/components/ui/Modal';
 import { addCustomer, updateCustomer, deleteCustomer } from './actions';
 import { useToast } from '@/components/ui/Alert';
+import { getErrorMessage } from "@/lib/errors";
 
 interface Address {
   id: string;
   address_type: string;
   pic_name: string;
-  pic_phone: string;
+  pic_phone: string | null;
   complete_address: string;
-  is_default: boolean;
+  is_default: boolean | null;
 }
 
 interface Customer {
   id: string;
   company_name: string;
-  email: string;
-  phone: string;
+  email: string | null;
+  phone: string | null;
   requires_invoice_on_do: boolean;
   customer_addresses: Address[];
 }
@@ -63,7 +64,11 @@ export default function CustomersClient({ initialCustomers }: Props) {
         phone: customer.phone || '',
         requires_invoice_on_do: customer.requires_invoice_on_do || false,
         addresses: customer.customer_addresses?.length > 0
-          ? customer.customer_addresses
+          ? customer.customer_addresses.map(addr => ({
+              ...addr,
+              pic_phone: addr.pic_phone || '',
+              is_default: addr.is_default ?? false,
+            }))
           : [{ id: '', address_type: 'Billing', pic_name: '', pic_phone: '', complete_address: '', is_default: true }],
       });
     } else {
@@ -83,7 +88,11 @@ export default function CustomersClient({ initialCustomers }: Props) {
     setFormData({ ...formData, addresses: formData.addresses.filter((_, idx) => idx !== i) });
   };
 
-  const updateAddressField = (index: number, field: string, value: any) => {
+  const updateAddressField = (
+    index: number,
+    field: 'address_type' | 'pic_name' | 'pic_phone' | 'complete_address',
+    value: string,
+  ) => {
     const updated = [...formData.addresses];
     updated[index] = { ...updated[index], [field]: value };
     setFormData({ ...formData, addresses: updated });
@@ -101,9 +110,9 @@ export default function CustomersClient({ initialCustomers }: Props) {
         }
         toast.success('Pelanggan berhasil disimpan!', 'Sukses');
         setIsModalOpen(false);
-      } catch (err: any) {
-        setError(err.message);
-        toast.error(`Gagal menyimpan pelanggan: ${err.message}`, 'Error');
+      } catch (err) {
+        setError(getErrorMessage(err));
+        toast.error(`Gagal menyimpan pelanggan: ${getErrorMessage(err)}`, 'Error');
       }
     });
   };

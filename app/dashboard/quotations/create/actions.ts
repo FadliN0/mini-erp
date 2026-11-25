@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabaseServer';
 import { requireAdmin } from '@/lib/auth-guards';
 import { revalidatePath } from 'next/cache';
+import { getErrorMessage } from "@/lib/errors";
+import type { QuotationItemPayload } from "@/lib/quotation-items";
 
 type ActionResult = { success: boolean; error?: string };
 
@@ -14,7 +16,7 @@ type CreateQuotationPayload = {
   mrNumber: string | null;
   grandTotal: number;
   notes: string | null;
-  items: any[];
+  items: QuotationItemPayload[];
 };
 
 export async function getCustomerAddressesAction(customerId: string) {
@@ -51,7 +53,7 @@ export async function createQuotationAction(
     if (error) throw error;
     revalidatePath('/dashboard/quotations');
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
   }
 }

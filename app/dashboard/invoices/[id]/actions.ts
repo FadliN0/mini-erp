@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabaseServer';
 import { requireUser, requireAtasan, requireAdmin } from '@/lib/auth-guards';
 import { revalidatePath } from 'next/cache';
+import { getErrorMessage } from "@/lib/errors";
 
 type ActionResult = { success: boolean; error?: string };
 
@@ -112,8 +113,8 @@ export async function saveInvoiceEditsAction(
 
     revalidateInvoiceRelatedPaths(invoiceId);
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
   }
 }
 
@@ -183,8 +184,8 @@ export async function recordPaymentAction(
 
     revalidateInvoiceRelatedPaths(invoiceId);
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
   }
 }
 
@@ -207,8 +208,8 @@ export async function cancelInvoiceAction(
 
     revalidateInvoiceRelatedPaths(invoiceId);
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
   }
 }
 
@@ -228,8 +229,8 @@ export async function updateInvoiceAddressAction(
     if(error) throw new Error(error.message);
     revalidateInvoiceRelatedPaths(invoiceID);
     return {success: true};
-  } catch (error: any) {
+  } catch (error) {
     console.error("Gagal update alamat invoice:", error);
-    return {success: false, error: error.message};
+    return {success: false, error: getErrorMessage(error)};
   }
 }

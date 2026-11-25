@@ -8,6 +8,12 @@ import {
   updateSalesOrderStatusAction,
   createInvoiceFromSoAction,
 } from "./actions";
+import { getErrorMessage } from "@/lib/errors";
+import type { Tables } from "@/lib/database.types";
+
+type SalesOrderItemWithProduct = Tables<"sales_order_items"> & {
+  products: Pick<Tables<"products">, "part_code" | "part_name" | "unit" | "remark"> | null;
+};
 
 export default function SalesOrderDetailClient({
   salesOrder: initialSalesOrder,
@@ -17,15 +23,15 @@ export default function SalesOrderDetailClient({
   hasDO,
   hasInvoice,
 }: {
-  salesOrder: any;
-  customer: any;
-  address: any;
-  items: any[];
+  salesOrder: Tables<"sales_orders">;
+  customer: Tables<"customers"> | null;
+  address: Tables<"customer_addresses"> | null;
+  items: SalesOrderItemWithProduct[];
   hasDO: boolean;
   hasInvoice: boolean;
 }) {
   const router = useRouter();
-  const [salesOrder, setSalesOrder] = useState<any>(initialSalesOrder);
+  const [salesOrder, setSalesOrder] = useState<Tables<"sales_orders">>(initialSalesOrder);
   const toast = useToast();
   const [isCreatingInvoice, startInvoiceTransition] = useTransition();
   const [isUpdatingStatus, startStatusTransition] = useTransition();
@@ -50,8 +56,8 @@ export default function SalesOrderDetailClient({
         await updateSalesOrderStatusAction(salesOrder.id, newStatus);
         setSalesOrder({ ...salesOrder, status: newStatus });
         router.refresh();
-      } catch (error: any) {
-        toast.error(`Gagal mengupdate status: ${error.message}`, "Error");
+      } catch (error) {
+        toast.error(`Gagal mengupdate status: ${getErrorMessage(error)}`, "Error");
       }
     });
   };
@@ -73,8 +79,8 @@ export default function SalesOrderDetailClient({
           "Success",
         );
         router.push("/dashboard/invoices");
-      } catch (error: any) {
-        toast.error(`Gagal membuat Invoice: ${error.message}`, "Error");
+      } catch (error) {
+        toast.error(`Gagal membuat Invoice: ${getErrorMessage(error)}`, "Error");
       }
     });
   };
@@ -114,7 +120,7 @@ export default function SalesOrderDetailClient({
                 Status SO
               </span>
               <select
-                value={salesOrder.status}
+                value={salesOrder.status || ""}
                 onChange={(e) => handleUpdateStatus(e.target.value)}
                 disabled={isStatusLocked || isUpdatingStatus}
                 title="Status Sales Order"
@@ -401,7 +407,7 @@ export default function SalesOrderDetailClient({
                   Date
                 </span>
                 <span style={{ fontSize: 11, fontWeight: 700 }}>
-                  {new Date(salesOrder.created_at).toLocaleDateString(
+                  {new Date(salesOrder.created_at || new Date()).toLocaleDateString(
                     "en-GB",
                     { day: "2-digit", month: "short", year: "numeric" },
                   )}
@@ -501,18 +507,6 @@ export default function SalesOrderDetailClient({
                         ({item.products.remark})
                       </div>
                     )}
-                    {item.item_note && (
-                      <div
-                        style={{
-                          fontSize: 9.5,
-                          color: "#7D7A75",
-                          fontStyle: "italic",
-                          marginTop: 2,
-                        }}
-                      >
-                        ({item.item_note})
-                      </div>
-                    )}
                   </td>
                   <td
                     style={{
@@ -544,7 +538,7 @@ export default function SalesOrderDetailClient({
                     {item.unit_price?.toLocaleString("id-ID")}
                   </td>
                   <td style={{ ...tdRow, textAlign: "center" }}>
-                    {item.discount > 0 ? (
+                    {item.discount ? (
                       <span
                         style={{
                           background: "#E5F2FC",
@@ -645,8 +639,7 @@ export default function SalesOrderDetailClient({
                   lineHeight: 1.55,
                 }}
               >
-                {salesOrder.notes ||
-                  "Harap diproses sesuai standard operasi perusahaan. Segera terbitkan Surat Jalan (Delivery Order) jika barang sudah siap."}
+                {"Harap diproses sesuai standard operasi perusahaan. Segera terbitkan Surat Jalan (Delivery Order) jika barang sudah siap."}
               </div>
             </div>
           </div>

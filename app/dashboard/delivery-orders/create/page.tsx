@@ -33,7 +33,7 @@ export default async function DeliveryOrderCreatePage({
     redirect(`/dashboard/sales-orders/${so_id}`);
   }
 
-  const soItemIds = backorders.map((b: any) => b.so_item_id);
+  const soItemIds = backorders.map((b) => b.so_item_id);
 
   // === TAHAP 2: alamat (butuh salesOrder) + detail item (butuh backorders) ===
   // Keduanya saling mandiri → paralel
@@ -44,7 +44,7 @@ export default async function DeliveryOrderCreatePage({
           .select('*')
           .eq('customer_id', salesOrder.customer_id)
           .order('is_default', { ascending: false })
-      : Promise.resolve({ data: [] as any[] }),
+      : Promise.resolve({ data: [] as never[] }),
     supabase
       .from('sales_order_items')
       .select('id, products(part_code, part_name, unit)')
@@ -55,7 +55,7 @@ export default async function DeliveryOrderCreatePage({
   const itemDetails = itemDetailsRes.data;
 
   // === Sisanya SAMA seperti kodemu ===
-  const initialItems = backorders.map((bo: any) => {
+  const initialItems = backorders.map((bo) => {
     const detail = itemDetails?.find((i) => i.id === bo.so_item_id);
     const productInfo = Array.isArray(detail?.products)
       ? detail?.products[0]

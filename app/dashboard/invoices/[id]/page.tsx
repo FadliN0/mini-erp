@@ -62,7 +62,7 @@ export default async function InvoiceDetailPage({
     .order('created_at', { ascending: false });
 
   // 3. Mapping item berbasis invoice_items (tetap mempertahankan struktur prop untuk UI)
-  const items = (invItemsData || []).map((invItem: any) => {
+  const items = (invItemsData || []).map((invItem) => {
     const soItem = invItem.sales_order_items || {};
     return {
       id: soItem.id || invItem.so_item_id,

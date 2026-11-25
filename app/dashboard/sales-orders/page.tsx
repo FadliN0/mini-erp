@@ -9,16 +9,17 @@ export default async function SalesOrderListPage() {
   const { data: rows } = await supabase
     .from('sales_orders')
     .select(
-      `*,customers ( company_name )
+      `*,
+      customers ( company_name ),
       invoices ( id, status, canceled_at )
       `
     )
     .order('created_at', { ascending: false });
 
-    const salesOrders = (rows || []).map((so: any) => ({
+    const salesOrders = (rows || []).map((so) => ({
       ...so,
       hasInvoice: (so.invoices || []).some(
-        (inv: any) => !inv.canceled_at && inv.status !== 'Cancelled'
+        (inv) => !inv.canceled_at && inv.status !== 'Cancelled'
       ),
     }));
 

@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabaseServer';
 import { requireAdmin } from '@/lib/auth-guards';
 import { revalidatePath } from 'next/cache';
+import { getErrorMessage } from "@/lib/errors";
+import type { QuotationItemPayload } from "@/lib/quotation-items";
 
 type ActionResult = { success: boolean; error?: string };
 
@@ -20,10 +22,18 @@ export async function updateQuotationStatusAction(
     if (error) throw error;
     revalidatePath(`/dashboard/quotations/${id}`);
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
   }
 }
+
+
+// Bentuk hasil RPC generate_sales_order saat sukses.
+type GenerateSOResult = {
+  success?: boolean;
+  so_id?: string;
+  so_number?: string;
+};
 
 type GenerateSOPayload = {
   quotationId: string;
@@ -31,12 +41,12 @@ type GenerateSOPayload = {
   customerId: string;
   addressId: string;
   grandTotal: number;
-  items: any[];
+  items: QuotationItemPayload[];
 };
 
 export async function generateSalesOrderAction(
   payload: GenerateSOPayload,
-): Promise<{ success: boolean; data?: any; error?: string }> {
+): Promise<{ success: boolean; data?: GenerateSOResult; error?: string }> {
   const supabase = await createClient();
   try {
     await requireAdmin();
@@ -50,8 +60,9 @@ export async function generateSalesOrderAction(
     });
     if (error) throw error;
     revalidatePath(`/dashboard/quotations/${payload.quotationId}`);
-    return { success: true, data };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+    // RPC mengembalikan Json; bentuk suksesnya didokumentasikan di QuotationDetailClient
+    return { success: true, data: data as unknown as GenerateSOResult };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
   }
 }

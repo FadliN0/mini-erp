@@ -1,11 +1,24 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import type { Tables } from "@/lib/database.types";
+
+type DeliveryOrderListRow = Tables<"delivery_orders"> & {
+  sales_orders: (Pick<Tables<"sales_orders">, "so_number"> & {
+    customers: Pick<Tables<"customers">, "company_name"> | null;
+    sales_order_items: Pick<Tables<"sales_order_items">, "id" | "qty">[];
+  }) | null;
+  delivery_order_items: Pick<
+    Tables<"delivery_order_items">,
+    "qty_delivered" | "so_item_id"
+  >[];
+  calculatedStatus: "Partial" | "Completed";
+};
 
 export default function DeliveryOrderListClient({
   initialOrders,
 }: {
-  initialOrders: any[];
+  initialOrders: DeliveryOrderListRow[];
 }) {
   const [search, setSearch] = useState("");
   const deliveryOrders = initialOrders;
@@ -136,7 +149,7 @@ export default function DeliveryOrderListClient({
                       </td>
                       <td className="p-4 text-sm font-bold text-slate-700">
                         {new Date(
-                          doItem.delivery_date || doItem.created_at,
+                          doItem.delivery_date || doItem.created_at || "",
                         ).toLocaleDateString("id-ID", {
                           day: "2-digit",
                           month: "long",
@@ -207,7 +220,7 @@ export default function DeliveryOrderListClient({
                     </span>
                     <span className="font-bold text-slate-700">
                       {new Date(
-                        doItem.delivery_date || doItem.created_at,
+                        doItem.delivery_date || doItem.created_at || "",
                       ).toLocaleDateString("id-ID", {
                         day: "2-digit",
                         month: "long",

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase'; // Hanya dipertahankan untuk Kueri SELECT (Read-only) riwayat tren
 import Image from 'next/image';
 import { usernameToEmail } from '@/lib/auth-utils'
+import { getErrorMessage } from "@/lib/errors";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -30,11 +31,11 @@ export default function LoginPage() {
 
       router.refresh();
       router.push('/dashboard');
-    } catch (err: any) {
-        if (err.message?.includes('Invalid login credentials')) {
+    } catch (err) {
+        if (getErrorMessage(err)?.includes('Invalid login credentials')) {
         setError('Username atau password salah.');
       } else {
-        setError(err.message || 'Gagal terhubung ke server.');
+        setError(getErrorMessage(err) || 'Gagal terhubung ke server.');
       } 
     }finally {
       setIsLoading(false);

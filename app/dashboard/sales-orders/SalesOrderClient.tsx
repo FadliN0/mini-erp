@@ -4,8 +4,16 @@ import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { deleteSalesOrderAction } from './actions';
 import { useToast } from '@/components/ui/Alert';
+import { getErrorMessage } from "@/lib/errors";
+import type { Tables } from "@/lib/database.types";
 
-export default function SalesOrderClient({ salesOrders }: { salesOrders: any[] }) {
+type SalesOrderListRow = Tables<"sales_orders"> & {
+  customers: Pick<Tables<"customers">, "company_name"> | null;
+  invoices: Pick<Tables<"invoices">, "id" | "status" | "canceled_at">[];
+  hasInvoice: boolean;
+};
+
+export default function SalesOrderClient({ salesOrders }: { salesOrders: SalesOrderListRow[] }) {
   const [search, setSearch] = useState('');
   const [isPending, startTransition] = useTransition();
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -21,8 +29,8 @@ export default function SalesOrderClient({ salesOrders }: { salesOrders: any[] }
     startTransition(async () => {
       try {
         await deleteSalesOrderAction(id);
-      } catch (err: any) {
-        toast.error(`Gagal menghapus: ${err.message}`, "Error");
+      } catch (err) {
+        toast.error(`Gagal menghapus: ${getErrorMessage(err)}`, "Error");
       } finally {
         setDeletingId(null);
       }
@@ -37,7 +45,7 @@ export default function SalesOrderClient({ salesOrders }: { salesOrders: any[] }
         so.customers.company_name.toLowerCase().includes(search.toLowerCase()))
   );
 
-  const StatusBadge = ({ status, hasInvoice }: { status: string; hasInvoice: boolean }) => {
+  const StatusBadge = ({ status, hasInvoice }: { status: string | null; hasInvoice: boolean }) => {
     const base =
       "px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider inline-block border";
 
@@ -130,7 +138,7 @@ export default function SalesOrderClient({ salesOrders }: { salesOrders: any[] }
                       </div>
                     </td>
                     <td className="p-4 text-sm font-bold text-slate-800">
-                      {new Date(so.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      {new Date(so.created_at || new Date()).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </td>
                     <td className="p-4 text-sm font-black text-slate-800 uppercase">
                       {so.customers?.company_name || <span className="text-rose-400 italic">Klien Terhapus</span>}
@@ -174,7 +182,7 @@ export default function SalesOrderClient({ salesOrders }: { salesOrders: any[] }
                   <div>
                     <div className="font-mono text-sm font-bold text-emerald-700">{so.so_number}</div>
                     <div className="text-xs font-medium text-slate-500 mt-0.5">
-                      {new Date(so.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      {new Date(so.created_at || new Date()).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </div>
                   </div>
                   <StatusBadge status={so.status} hasInvoice={so.hasInvoice} />

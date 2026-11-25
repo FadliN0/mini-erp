@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabaseServer';
 import { requireAdmin } from '@/lib/auth-guards';
 import { revalidatePath } from 'next/cache';
+import { getErrorMessage } from "@/lib/errors";
 
 type ActionResult = { success: boolean; error?: string };
 
@@ -24,8 +25,8 @@ export async function createProductAction(
     if (error) throw error;
     revalidatePath('/dashboard/products');
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
   }
 }
 
@@ -43,8 +44,8 @@ export async function updateProductAction(
     if (error) throw error;
     revalidatePath('/dashboard/products');
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
   }
 }
 
@@ -56,7 +57,7 @@ export async function deleteProductAction(id: string): Promise<ActionResult> {
     if (error) throw error;
     revalidatePath('/dashboard/products');
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     return {
       success: false,
       error:
@@ -86,7 +87,7 @@ export async function smartPasteUpsertAction(
     }
     revalidatePath('/dashboard/products');
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
   }
 }
