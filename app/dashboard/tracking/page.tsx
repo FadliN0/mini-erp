@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getErrorMessage } from "@/lib/errors";
 import type { Tables } from "@/lib/database.types";
+import { useToast } from "@/components/ui/Alert";
 
 export default function TrackingPage() {
+  const toast = useToast();
   const [trackingData, setTrackingData] = useState<Tables<"view_document_tracking">[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -30,7 +32,7 @@ export default function TrackingPage() {
       }
     } catch (error) {
       console.error("Gagal menarik data tracking:", getErrorMessage(error));
-      alert("Gagal memuat data tracking.");
+      toast.error("Gagal memuat data tracking.");
     } finally {
       setLoading(false); 
     }

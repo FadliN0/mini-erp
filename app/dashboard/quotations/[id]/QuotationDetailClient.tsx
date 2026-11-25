@@ -8,6 +8,7 @@ import {
 import { getErrorMessage } from "@/lib/errors";
 import type { Tables } from "@/lib/database.types";
 import QuotationPrintSheet from "./QuotationPrintSheet";
+import { useToast } from "@/components/ui/Alert";
 
 /* ─── Konfigurasi Pagination Pintar ─── */
 export const ROWS_FULL_PAGE = 12; // Kapasitas halaman penuh (tanpa Total, Note & TTD)
@@ -63,6 +64,7 @@ export default function QuotationDetailClient({
   items,
   initialExistingSO,
 }: QuotationDetailClientProps) {
+  const toast = useToast();
   const [quotation, setQuotation] = useState<Tables<"quotations">>(initialQuotation);
   const [existingSO, setExistingSO] = useState<ExistingSO | null>(initialExistingSO);
 
@@ -81,7 +83,7 @@ export default function QuotationDetailClient({
 
   const handleUpdateStatus = async (newStatus: string) => {
     if (existingSO) {
-      alert("Dokumen ini sudah terkunci karena Sales Order telah diterbitkan.");
+      toast.warning("Dokumen ini sudah terkunci karena Sales Order telah diterbitkan.");
       return;
     }
     const res = await updateQuotationStatusAction(id, newStatus);
@@ -99,7 +101,7 @@ export default function QuotationDetailClient({
   const handleCreateSO = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!poInput.trim()) {
-      alert("Nomor PO dari klien wajib diisi!");
+      toast.warning("Nomor PO dari klien wajib diisi!");
       return;
     }
     setIsCreatingSO(true);
@@ -122,7 +124,7 @@ export default function QuotationDetailClient({
       if (!res.success) throw new Error(res.error);
       const rpcResult = res.data;
       if (rpcResult && rpcResult.success && rpcResult.so_id && rpcResult.so_number) {
-        alert(
+        toast.success(
           `Sukses! Dokumen Sales Order ${rpcResult.so_number} berhasil diterbitkan.`,
         );
         setExistingSO({ id: rpcResult.so_id, so_number: rpcResult.so_number });
@@ -134,7 +136,7 @@ export default function QuotationDetailClient({
       }
     } catch (error) {
       console.error(error);
-      alert(`Gagal membuat SO: ${getErrorMessage(error)}`);
+      toast.error(`Gagal membuat SO: ${getErrorMessage(error)}`);
     } finally {
       setIsCreatingSO(false);
     }

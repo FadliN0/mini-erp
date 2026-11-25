@@ -6,6 +6,7 @@ import Modal from '@/components/ui/Modal';
 import { smartPasteUpsertAction } from './actions';
 import { getErrorMessage } from "@/lib/errors";
 import { fmtRp } from "@/lib/format";
+import { useToast } from "@/components/ui/Alert";
 
 type ParsedProduct = {
   part_code: string;
@@ -16,6 +17,7 @@ type ParsedProduct = {
 };
 
 export default function SmartPasteProduct() {
+  const toast = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [pastedText, setPastedText] = useState('');
   const [parsedData, setParsedData] = useState<ParsedProduct[]>([]);
@@ -53,7 +55,7 @@ export default function SmartPasteProduct() {
       const res = await smartPasteUpsertAction(parsedData);
       if (!res.success) throw new Error(res.error);
 
-      alert(
+      toast.success(
         `Mantap! ${parsedData.length} produk berhasil disimpan.\n` +
           `(Produk baru ditambahkan, produk lama dengan Part Code sama diperbarui)`,
       );
@@ -62,7 +64,7 @@ export default function SmartPasteProduct() {
       setParsedData([]);
       router.refresh();
     } catch (err) {
-      alert(getErrorMessage(err));
+      toast.error(getErrorMessage(err));
     } finally {
       setIsSaving(false);
     }

@@ -6,9 +6,10 @@ export const dynamic = 'force-dynamic'; // Selalu ambil data terbaru
 export default async function DashboardHome() {
   const supabase = await createClient();
   
-  // 1. Ambil Nama User
-  const { data: { session } } = await supabase.auth.getSession();
-  const userName = session?.user?.email?.split('@')[0] || 'Admin';
+  // 1. Ambil Nama User (getUser memverifikasi token ke server Supabase Auth,
+  //    tidak seperti getSession yang hanya membaca dari cookie)
+  const { data: { user } } = await supabase.auth.getUser();
+  const userName = user?.email?.split('@')[0] || 'Admin';
 
   // 2. Persiapan Waktu (6 Bulan Terakhir)
   const now = new Date();

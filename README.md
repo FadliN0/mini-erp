@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CV HJP — DMS (mini-erp)
 
-## Getting Started
+Sistem ERP internal **CV Harmonisindo Jaya Part** untuk mengelola alur dokumen
+penjualan suku cadang alat berat, dari penawaran sampai pembayaran.
 
-First, run the development server:
+## Alur Dokumen
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+Quotation → Sales Order → Delivery Order → Invoice → Payment
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Dilengkapi modul Customers (multi-alamat), Products, Target pelanggan &
+perusahaan (KPI), Laporan keuangan, dan Tracking dokumen.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Teknologi
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Next.js 15** (App Router) + React 18 + TypeScript
+- **Supabase** (PostgreSQL, Auth, Row Level Security)
+- **Tailwind CSS** untuk UI
+- Deployment: **Vercel**
 
-## Learn More
+## Menjalankan Secara Lokal
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm install
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Buat file `.env.local`:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<publishable/anon key>
+SUPABASE_SERVICE_ROLE_KEY=<service role key>   # hanya server, jangan diekspos
+```
 
-## Deploy on Vercel
+## Peran Pengguna
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Role      | Hak akses utama                                                        |
+|-----------|------------------------------------------------------------------------|
+| `admin`   | Mutasi operasional (buat/ubah/hapus dokumen, produk, pelanggan)        |
+| `atasan`  | Pencatatan pembayaran, kelola pengguna, target, laporan, cancel invoice |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Penegakan ganda: guard di Server Actions (`lib/auth-guards.ts`) dan Row Level
+Security di database.
+
+## Pemeriksaan Kualitas
+
+```bash
+npx tsc --noEmit     # cek tipe
+npx eslint app components lib
+npm run build        # build produksi
+```
+
+CI (GitHub Actions) menjalankan ketiganya otomatis pada setiap pull request.
+
+## Struktur Penting
+
+- `app/dashboard/` — halaman & komponen per modul
+- `lib/database.types.ts` — tipe hasil skema Supabase (regenerasi:
+  `supabase gen types typescript --project-id <ref>`)
+- `lib/format.ts` — formatter Rupiah/tanggal bersama
