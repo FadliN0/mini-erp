@@ -6,6 +6,7 @@ import { getErrorMessage } from "@/lib/errors";
 import type { Tables } from "@/lib/database.types";
 import type { ProductHistoryRow } from "../actions";
 import { fmtRp } from "@/lib/format";
+import { useToast } from "@/components/ui/Alert";
 
 // --- Utility Functions Khusus Tab Barang ---
 
@@ -26,6 +27,7 @@ export default function ProductsTab({
 }: {
   customersList: Pick<Tables<"customers">, "id" | "company_name">[];
 }) {
+  const toast = useToast();
   const [productSearch, setProductSearch] = useState('');
   const [selectedProductCustomerId, setSelectedProductCustomerId] =
     useState('');
@@ -36,7 +38,7 @@ export default function ProductsTab({
   const fetchProductHistory = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!productSearch.trim() && !selectedProductCustomerId) {
-      return alert('Silakan pilih Klien atau ketik nama barang untuk mencari!');
+      return toast.warning('Silakan pilih Klien atau ketik nama barang untuk mencari!');
     }
 
     setProductLoading(true);
@@ -55,7 +57,7 @@ export default function ProductsTab({
       );
       setProductHistory(sortedData);
     } catch (error) {
-      alert(`Gagal menarik riwayat barang: ${getErrorMessage(error)}`);
+      toast.error(`Gagal menarik riwayat barang: ${getErrorMessage(error)}`);
     } finally {
       setProductLoading(false);
     }

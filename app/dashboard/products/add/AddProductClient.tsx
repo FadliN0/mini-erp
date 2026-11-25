@@ -6,6 +6,7 @@ import Link from "next/link";
 import { AlertBanner } from "@/components/ui/Alert";
 import { bulkCreateProductsAction } from "./actions";
 import { getErrorMessage } from "@/lib/errors";
+import { useToast } from "@/components/ui/Alert";
 
 interface ProductForm {
   tempId: number;
@@ -22,6 +23,7 @@ export default function AddProductClient({
   existingCodes,
 }: AddProductClientProps) {
   const router = useRouter();
+  const toast = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -118,7 +120,7 @@ export default function AddProductClient({
       const res = await bulkCreateProductsAction(payload);
       if (!res.success) throw new Error(res.error);
 
-      alert(`Berhasil menyimpan ${validForms.length} produk baru!`);
+      toast.success(`Berhasil menyimpan ${validForms.length} produk baru!`);
       router.push("/dashboard/products");
       router.refresh();
     } catch (err) {

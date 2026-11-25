@@ -6,7 +6,6 @@ import { supabase } from '@/lib/supabase';
 import Link from "next/link";
 import { useToast } from "@/components/ui/Alert";
 import Modal from "@/components/ui/Modal";
-import Image from "next/image";
 import {
   saveInvoiceEditsAction,
   recordPaymentAction,
@@ -273,10 +272,10 @@ export default function InvoiceDetailClient({
       if (res.success){
         setIsAddressModalOpen(false);
       } else{
-        alert(`Gagal : ${res.error}`);
+        toast.error(`Gagal : ${res.error}`);
       }
     }catch (error) {
-      alert(`Gagal : ${getErrorMessage(error)}`);
+      toast.error(`Gagal : ${getErrorMessage(error)}`);
     } finally {
       setIsUpdatingAddress(false);
     }

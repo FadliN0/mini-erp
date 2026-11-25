@@ -6,6 +6,7 @@ import { fetchTransactionsReportAction } from '../actions';
 import { getErrorMessage } from "@/lib/errors";
 import type { Tables } from "@/lib/database.types";
 import { fmtRp, fmtDateID } from "@/lib/format";
+import { useToast } from "@/components/ui/Alert";
 
 // --- Utility Functions Khusus Tab Transaksi ---
 
@@ -42,6 +43,7 @@ export default function TransactionsTab({
   customersList: Pick<Tables<"customers">, "id" | "company_name">[];
 }) {
   const router = useRouter();
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [reportType, setReportType] = useState('all_sales');
   const [startDate, setStartDate] = useState(
@@ -82,7 +84,7 @@ export default function TransactionsTab({
 
       setReportData(formatted);
     } catch (err) {
-      alert(`Gagal menarik laporan: ${getErrorMessage(err)}`);
+      toast.error(`Gagal menarik laporan: ${getErrorMessage(err)}`);
     } finally {
       setLoading(false);
     }
